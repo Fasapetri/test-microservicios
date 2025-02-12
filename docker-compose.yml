@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  pedidos:
+    build: ./pedidos/pedidos
+    container_name: pedidos-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/pedido
+    networks:
+      - backend
+
+  plazoleta:
+    build: ./plazoleta/plazoleta
+    container_name: plazoleta-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/plazoleta_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=1234
+    networks:
+      - backend
+
+  users:
+    build: ./users/users
+    container_name: users-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/users_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=1234
+    networks:
+      - backend
+
+  mongo:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh mongo:27017/test --quiet
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    networks:
+      - backend
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p1234"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  mongo_data:
+
+

@@ -1,0 +1,32 @@
+package com.example.pedidos.service;
+
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+
+@Service
+public class SmsService {
+
+    @Value("${twilio.account.sid}")
+    private String accountSid;
+
+    @Value("${twilio.auth.token}")
+    private String outhToken;
+
+    @Value("${twilio.phone.number}")
+    private String twilioPhoneNumber;
+
+    public Mono<Void> enviarSms(String numeroCliente, String mensaje){
+        return Mono.fromRunnable(() -> {
+            Twilio.init(accountSid, outhToken);
+            Message.creator(
+                    new com.twilio.type.PhoneNumber(numeroCliente),
+                    new com.twilio.type.PhoneNumber(twilioPhoneNumber),
+                    mensaje
+            ).create();
+        }).then();
+    }
+
+}

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plazoleta-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plazoleta
+  template:
+    metadata:
+      labels:
+        app: plazoleta
+    spec:
+      containers:
+        - name: plazoleta-service
+          image: fasapetri/plazoleta-service:v1
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/plazoleta_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "1234"
+          ports:
+            - containerPort: 8082
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plazoleta-service
+spec:
+  selector:
+    app: plazoleta
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 8082

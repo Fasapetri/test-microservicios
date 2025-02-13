@@ -8,15 +8,15 @@ import java.util.List;
 
 public interface IUserServicePort {
 
-    User saveUser(User user, String rol);
+    User saveUser(User user, String token);
 
-    User findByEmailUser(String email, String rol);
+    User findByEmailUser(String email, String token);
 
-    User findByIdUser(Long id, String rol);
+    User findByIdUser(Long id, String token);
 
-    User updateUser(User user, String rol);
+    User updateUser(User user, String token);
 
-    void deleteUser(Long userId, String rol);
+    void deleteUser(Long userId, String token);
 
     List<User> getAllUser();
 

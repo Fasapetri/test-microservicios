@@ -20,47 +20,36 @@ public class UserHandler implements IUserHandler{
 
     private final IUserServicePort iUserServicePort;
     private final UserMapper userMapper;
-    private final IJwtServicePort iJwtServicePort;
-    private final IPasswordEncodePort iPasswordEncodePort;
 
     @Override
     public UserResponse saveUser(UserRequest userRequest, String token) {
-        String rol = iJwtServicePort.extractRoleFromToken(token);
         User user = userMapper.userRequestToUser(userRequest);
-        user.setPassword(iPasswordEncodePort.encode(user.getPassword()));
-        iUserServicePort.saveUser(user, rol);
+        iUserServicePort.saveUser(user, token);
         return userMapper.userToUserResponse(user);
     }
 
     @Override
     public UserResponse findByEmailUser(String email, String token) {
-        String rol = iJwtServicePort.extractRoleFromToken(token);
-        User user = iUserServicePort.findByEmailUser(email, rol);
+        User user = iUserServicePort.findByEmailUser(email, token);
         return userMapper.userToUserResponse(user);
     }
 
     @Override
     public UserResponse findByIdUser(Long id, String token) {
-        String rol = iJwtServicePort.extractRoleFromToken(token);
-        User user = iUserServicePort.findByIdUser(id, rol);
+        User user = iUserServicePort.findByIdUser(id, token);
         return userMapper.userToUserResponse(user);
     }
 
     @Override
     public UserResponse updateUser(UserRequest userRequest, String token) {
-        String rol = iJwtServicePort.extractRoleFromToken(token);
-        User oldUser = iUserServicePort.findByIdUser(userRequest.getId(), rol);
         User newUser = userMapper.userRequestToUser(userRequest);
-        newUser.setId(oldUser.getId());
-        iUserServicePort.updateUser(newUser, rol);
+        iUserServicePort.updateUser(newUser, token);
         return userMapper.userToUserResponse(newUser);
     }
 
     @Override
     public void deleteUser(Long userId, String token) {
-        String rol = iJwtServicePort.extractRoleFromToken(token);
-        User user = iUserServicePort.findByIdUser(userId, rol);
-        iUserServicePort.deleteUser(user.getId(), rol);
+        iUserServicePort.deleteUser(userId, token);
     }
 
     @Override

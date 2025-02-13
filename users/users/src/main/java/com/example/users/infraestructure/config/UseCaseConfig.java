@@ -21,8 +21,9 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public IUserServicePort userServicePort(IUserPersistencePort userPersistencePort) {
-        return new UserUseCase(userPersistencePort);
+    public IUserServicePort userServicePort(IUserPersistencePort userPersistencePort,IPasswordEncodePort passwordEncoderPort,
+                                            IJwtServicePort jwtServicePort) {
+        return new UserUseCase(userPersistencePort, jwtServicePort, passwordEncoderPort);
     }
 }
 

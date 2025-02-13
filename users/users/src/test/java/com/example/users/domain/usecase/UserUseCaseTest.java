@@ -1,6 +1,5 @@
 package com.example.users.domain.usecase;
 
-import com.example.users.domain.exception.UserCreationException;
 import com.example.users.domain.model.User;
 import com.example.users.domain.spi.IUserPersistencePort;
 import org.junit.jupiter.api.BeforeEach;

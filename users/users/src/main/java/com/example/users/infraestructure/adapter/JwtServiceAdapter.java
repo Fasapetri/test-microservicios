@@ -1,6 +1,6 @@
 package com.example.users.infraestructure.adapter;
 
-import com.example.users.domain.api.IJwtServicePort;
+import com.example.users.domain.spi.IJwtServicePort;
 import com.example.users.infraestructure.Security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

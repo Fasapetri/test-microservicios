@@ -5,7 +5,7 @@ import com.example.users.application.dto.AuthResponse;
 import com.example.users.application.dto.TokenValidationResponse;
 import com.example.users.application.mapper.AuthMapper;
 import com.example.users.domain.api.IAuthServicePort;
-import com.example.users.domain.api.IJwtServicePort;
+import com.example.users.domain.spi.IJwtServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

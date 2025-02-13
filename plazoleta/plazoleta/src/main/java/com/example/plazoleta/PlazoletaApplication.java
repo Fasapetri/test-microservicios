@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients(basePackages = "com.example.plazoleta.infraestructure.user")
+@EnableFeignClients(basePackages = "com.example.plazoleta.infraestructure.client")
 public class PlazoletaApplication {
 
 	public static void main(String[] args) {

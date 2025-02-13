@@ -1,8 +1,8 @@
 package com.example.users.infraestructure.config;
 
 import com.example.users.domain.api.IAuthServicePort;
-import com.example.users.domain.api.IJwtServicePort;
-import com.example.users.domain.api.IPasswordEncodePort;
+import com.example.users.domain.spi.IJwtServicePort;
+import com.example.users.domain.spi.IPasswordEncodePort;
 import com.example.users.domain.api.IUserServicePort;
 import com.example.users.domain.spi.IUserPersistencePort;
 import com.example.users.domain.usecase.AuthUseCase;

@@ -1,6 +1,6 @@
 package com.example.users.infraestructure.adapter;
 
-import com.example.users.domain.api.IPasswordEncodePort;
+import com.example.users.domain.spi.IPasswordEncodePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;

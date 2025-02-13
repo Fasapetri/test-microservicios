@@ -1,13 +1,12 @@
 package com.example.users.domain.usecase;
 
-import com.example.users.domain.api.IJwtServicePort;
-import com.example.users.domain.api.IPasswordEncodePort;
+import com.example.users.domain.spi.IJwtServicePort;
+import com.example.users.domain.spi.IPasswordEncodePort;
 import com.example.users.domain.model.User;
 import com.example.users.domain.spi.IUserPersistencePort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;

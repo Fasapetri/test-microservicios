@@ -3,8 +3,6 @@ package com.example.users.application.handler;
 import com.example.users.application.dto.UserRequest;
 import com.example.users.application.dto.UserResponse;
 import com.example.users.application.mapper.UserMapper;
-import com.example.users.domain.api.IJwtServicePort;
-import com.example.users.domain.api.IPasswordEncodePort;
 import com.example.users.domain.api.IUserServicePort;
 import com.example.users.domain.model.User;
 import lombok.RequiredArgsConstructor;

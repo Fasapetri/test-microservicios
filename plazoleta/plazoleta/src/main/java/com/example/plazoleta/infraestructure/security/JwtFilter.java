@@ -1,6 +1,5 @@
 package com.example.plazoleta.infraestructure.security;
 
-import com.example.plazoleta.infraestructure.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

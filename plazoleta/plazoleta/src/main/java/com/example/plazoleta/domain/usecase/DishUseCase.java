@@ -68,7 +68,7 @@ public class DishUseCase implements IDishServicePort {
 
         dish.setId(oldDish.getId());
 
-        return iDishPersistencePort.saveDish(dish);
+        return iDishPersistencePort.updateDish(dish);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class DishUseCase implements IDishServicePort {
         }
 
         dish.setActive(!dish.getActive());
-        return iDishPersistencePort.saveDish(dish);
+        return iDishPersistencePort.updateDishStatus(dish.getId());
     }
 
     @Override

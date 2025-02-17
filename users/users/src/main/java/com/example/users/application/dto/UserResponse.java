@@ -10,6 +10,9 @@ import lombok.EqualsAndHashCode;
 @Schema(description = "Respuesta con los datos del usuario")
 public class UserResponse {
 
+    @Schema(description = "ID del usuario", example = "1")
+    private Long id;
+
     @Schema(description = "Correo del usuario", example = "test@example.com")
     private String email;
 

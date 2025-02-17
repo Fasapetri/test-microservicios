@@ -18,7 +18,7 @@ public class Restaurant {
 
     private String phone;
 
-    private String url_Logo;
+    private String url_logo;
 
     private Long id_proprietary;
 

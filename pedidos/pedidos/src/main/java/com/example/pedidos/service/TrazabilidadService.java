@@ -6,6 +6,7 @@ import com.example.pedidos.repository.TrazabilidadRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 
@@ -21,19 +22,27 @@ public class TrazabilidadService {
     }
 
     public Flux<TrazabilidadPedido> listarHistorialPedido(String token, String idPedido){
-        Map<String, Object> usuario = usuarioClient.validateToken(token);
-        Object objectId = usuario.get("userId");
-        Long userId;
 
+        return Mono.fromCallable(()-> usuarioClient.validateToken(token))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMapMany(usuario -> {
+                    Long userId = convertirUserId(usuario.get(("userId")));
+
+                    return trazabilidadRepository.findByPedidoId(idPedido)
+                            .filter(trazabilidadPedido -> trazabilidadPedido.getClienteId().equals(userId))
+                            .switchIfEmpty(Mono.error(new IllegalArgumentException("No tienes permisos para consultar este pedido")));
+                });
+
+
+    }
+
+    private Long convertirUserId(Object objectId){
         if(objectId instanceof Integer){
-            userId = ((Integer) objectId).longValue();
+            return ((Integer) objectId).longValue();
         } else if(objectId instanceof Long){
-            userId = (Long) objectId;
+            return (Long) objectId;
         } else {
             throw new IllegalArgumentException("Tipo de userId desconocido: " + objectId.getClass().getName());
         }
-        return trazabilidadRepository.findByPedidoId(idPedido)
-                .filter(trazabilidadPedido -> trazabilidadPedido.getClienteId().equals(userId))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("No tienes permisos para consultar este pedido")));
     }
 }

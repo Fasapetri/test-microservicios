@@ -33,8 +33,8 @@ public class RestaurantEntity {
     @Column(name = "phone", nullable = false)
     private String phone;
 
-    @Column(name = "url_Logo")
-    private String url_Logo;
+    @Column(name = "url_logo", nullable = false)
+    private String url_logo;
 
     @Column(name = "id_proprietary", nullable = false)
     private Long id_proprietary;

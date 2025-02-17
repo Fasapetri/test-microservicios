@@ -2,10 +2,7 @@ package com.example.pedidos.service;
 
 import com.example.pedidos.client.RestauranteClient;
 import com.example.pedidos.client.UsuarioClient;
-import com.example.pedidos.model.EstadoPedido;
-import com.example.pedidos.model.ItemPedido;
-import com.example.pedidos.model.Pedido;
-import com.example.pedidos.model.TrazabilidadPedido;
+import com.example.pedidos.model.*;
 import com.example.pedidos.repository.PedidoRepository;
 import com.example.pedidos.repository.TrazabilidadRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -33,18 +31,10 @@ public class PedidoService {
     public Mono<Pedido> crearPedido(String token, Pedido pedido){
 
         return Mono.fromCallable(() -> usuarioClient.validateToken(token))
+                .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(usuario -> {
-                    Object objectId = usuario.get("userId");
-                    Long userId;
+                    Long userId = convertirUserId(usuario.get("userId"));
                     String rol = (String) usuario.get("rol");
-
-                    if(objectId instanceof Integer){
-                        userId = ((Integer) objectId).longValue();
-                    } else if(objectId instanceof Long){
-                        userId = (Long) objectId;
-                    } else {
-                        return Mono.error(new IllegalArgumentException("Tipo de userId desconocido " + objectId.getClass().getName()));
-                    }
 
                     if(!"EMPLEADO".equalsIgnoreCase(rol)){
                         return Mono.error(new IllegalArgumentException("Solo los empleados pueden realizar pedido"));
@@ -52,53 +42,65 @@ public class PedidoService {
 
                     pedido.setEmpleadoId(userId);
 
-                    return Mono.fromCallable(() -> restauranteClient.existeRestaurante(pedido.getRestauranteId(), token))
-                            .flatMap(existe -> {
-                                if(!existe){
+                    Mono<Boolean> existeRestauranteMono = Mono.fromCallable(()-> restauranteClient.existeRestaurante(pedido.getRestauranteId(), token))
+                            .subscribeOn(Schedulers.boundedElastic());
+
+                    Mono<ClienteDTO> clienteDTOMono = Mono.fromCallable(()-> usuarioClient.findById(pedido.getClienteId(), token))
+                            .subscribeOn(Schedulers.boundedElastic())
+                            .switchIfEmpty(Mono.error(new IllegalArgumentException("El cliente no existe")));
+
+                    return Mono.zip(existeRestauranteMono, clienteDTOMono)
+                            .flatMap(objects -> {
+                                boolean existsRestaurant = objects.getT1();
+                                ClienteDTO cliente = objects.getT2();
+
+                                if(!existsRestaurant){
                                     return Mono.error(new IllegalArgumentException("Restaurante no existe"));
                                 }
 
-                                return Mono.fromCallable(() -> usuarioClient.findById(pedido.getClienteId(), token))
-                                        .switchIfEmpty(Mono.error(new IllegalArgumentException("El cliente no existe")))
-                                        .flatMap(clienteDTO -> {
-                                                if(pedidoRepository.findByClienteIdAndEstadoIn(
-                                                        clienteDTO.getId(),
-                                                        new EstadoPedido[]{EstadoPedido.PENDIENTE, EstadoPedido.EN_PREPARACION, EstadoPedido.LISTO}).isPresent()){
-                                                    return Mono.error(new IllegalArgumentException("Este cliente ya tiene un pedido en curso"));
-                                                }
-                                                pedido.setClienteId(clienteDTO.getId());
-                                                return Mono.fromCallable(() -> restauranteClient.obtenerPlatosRestaurante(pedido.getRestauranteId(), token))
-                                                        .flatMap(listaPlatos -> {
-                                                            Set<String> platosDisponiblesIds = listaPlatos.keySet();
+                                if(pedidoRepository.findByClienteIdAndEstadoIn(cliente.getId(),
+                                        new EstadoPedido[]{EstadoPedido.PENDIENTE, EstadoPedido.EN_PREPARACION, EstadoPedido.LISTO}).isPresent()){
+                                    return Mono.error(new IllegalArgumentException("Este cliente ya tiene un pedido en curso"));
+                                }
+                                pedido.setClienteId(cliente.getId());
 
-                                                            if(pedido.getItems() == null || pedido.getItems().isEmpty()){
-                                                                return Mono.error(new IllegalArgumentException("El pedido debe contener al menos un item"));
-                                                            }
+                                return Mono.fromCallable(()-> restauranteClient.obtenerPlatosRestaurante(pedido.getRestauranteId(), token))
+                                        .subscribeOn(Schedulers.boundedElastic())
+                                        .flatMap(listaPlatos -> {
+                                            Set<String> platosDisponiblesId = listaPlatos.keySet();
 
-                                                            for(ItemPedido item: pedido.getItems()){
-                                                                String idPlatoEnString = String.valueOf(item.getPlatoId());
-                                                                if (!platosDisponiblesIds.contains(idPlatoEnString)){
-                                                                    return Mono.error(new RuntimeException("el plato con el id " + item.getPlatoId() + " no esta disponible en el restaurante"));
-                                                                }
-                                                                Map<String, Object> plato = (Map<String, Object>) listaPlatos.get(idPlatoEnString);
+                                            if(pedido.getItems() == null || pedido.getItems().isEmpty()){
+                                                return Mono.error(new IllegalArgumentException("El pedido debe contener al menos un item"));
+                                            }
+                                            return Flux.fromIterable(pedido.getItems())
+                                                    .flatMap(item -> {
+                                                        String idPlatoEnString = String.valueOf(item.getPlatoId());
 
-                                                                if (plato.containsKey("active") && !(Boolean) plato.get("active")) {
-                                                                    return Mono.error(new RuntimeException("El plato con ID " + plato.get("active") + " no está activo en el menú."));
-                                                                }
-                                                            }
+                                                        if(!platosDisponiblesId.contains(idPlatoEnString)) {
+                                                            return Mono.error(new IllegalArgumentException("El plato con el id: " + item.getPlatoId() + "no está disponible en el restaurante"));
+                                                        }
 
-                                                            pedido.setEstado(EstadoPedido.PENDIENTE);
-                                                            pedido.setFechaCreacion(LocalDateTime.now());
-                                                            return Mono.fromCallable(() -> pedidoRepository.save(pedido));
-                                                        });
+                                                        Map<String, Object> plato = (Map<String, Object>) listaPlatos.get(idPlatoEnString);
 
+                                                        if (!Boolean.TRUE.equals(plato.get("active"))) {
+                                                            return Mono.error(new IllegalArgumentException("El plato con ID " + idPlatoEnString + " no está activo en el menú."));
+                                                        }
 
+                                                        return Mono.just(item);
+                                                    }).collectList()
+                                                    .flatMap(itemsValidos -> {
+                                                        pedido.setEstado(EstadoPedido.PENDIENTE);
+                                                        pedido.setFechaCreacion(LocalDateTime.now());
+
+                                                        return Mono.fromCallable(()-> pedidoRepository.save(pedido))
+                                                                .subscribeOn(Schedulers.boundedElastic());
+                                                    });
                                         });
                             });
+
                 });
-
-
     }
+
 
     public Flux<Pedido> obtenerPedidos(){
         return Flux.fromIterable(pedidoRepository.findAll())
@@ -129,140 +131,165 @@ public class PedidoService {
 
     @Transactional
     public Mono<String> actualizarEstadoPedido(String token, String idPedido, String estadoPedido) {
-        Map<String, Object> usuario = usuarioClient.validateToken(token);
-        String rol = (String) usuario.get("rol");
 
-        Object objectId = usuario.get("userId");
-        Long userId;
+        return Mono.fromCallable(()-> usuarioClient.validateToken(token))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap( usuario -> {
+                    String rol = (String) usuario.get("rol");
+                    Long userId = convertirUserId(usuario.get("userId"));
 
-        if(objectId instanceof Integer){
-            userId = ((Integer) objectId).longValue();
-        } else if(objectId instanceof Long){
-            userId = (Long) objectId;
-        } else {
-            throw new IllegalArgumentException("Tipo de userId desconocido: " + objectId.getClass().getName());
-        }
-
-        if (!"EMPLEADO".equalsIgnoreCase(rol)) {
-            return Mono.error(new IllegalArgumentException("No tienes permisos para esta acción"));
-        }
-
-        return Mono.justOrEmpty(pedidoRepository.findById(idPedido))
-                .flatMap(pedido -> {
-
-                    EstadoPedido estadoAnterior = pedido.getEstado();
-                    pedido.setEstado(EstadoPedido.valueOf(estadoPedido.toUpperCase()));
-
-                    if(pedido.getEstado().equals(EstadoPedido.ENTREGADO)){
-                        pedido.setFechaEntrega(LocalDateTime.now());
+                    if (!"EMPLEADO".equalsIgnoreCase(rol)) {
+                        return Mono.error(new IllegalArgumentException("No tienes permisos para esta acción"));
                     }
 
-                    return Mono.fromCallable(() -> pedidoRepository.save(pedido))
-                            .flatMap(savePedido -> {
-                                TrazabilidadPedido trazabilidad = new TrazabilidadPedido();
-                                trazabilidad.setPedidoId(savePedido.getId());
-                                trazabilidad.setClienteId(savePedido.getClienteId());
-                                trazabilidad.setEmpleadoId(userId);
-                                trazabilidad.setEstadoNuevo(savePedido.getEstado());
-                                trazabilidad.setEstadoAnterior(estadoAnterior);
-                                trazabilidad.setFechaCambio(LocalDateTime.now());
+                    return Mono.justOrEmpty(pedidoRepository.findById(idPedido))
+                            .switchIfEmpty(Mono.error(new IllegalArgumentException("El pedido no existe")))
+                            .flatMap(pedido -> {
+                                EstadoPedido estadoPedidoAnterior = pedido.getEstado();
+                                pedido.setEstado(EstadoPedido.valueOf(estadoPedido.toUpperCase()));
 
-                                return trazabilidadRepository.save(trazabilidad)
-                                        .thenReturn("El estado del pedido se ha actualizado correctamente");
-                            }).onErrorResume(e -> Mono.error(new RuntimeException("Error al actualizar el pedido  " + e.getMessage())));
-                }).switchIfEmpty(Mono.error(new IllegalArgumentException("El pedido no existe")));
+                                if(pedido.getEstado().equals(EstadoPedido.ENTREGADO)){
+                                    pedido.setFechaEntrega(LocalDateTime.now());
+                                }
 
+                                return Mono.fromCallable(()-> pedidoRepository.save(pedido))
+                                        .flatMap(savePedido -> {
+                                            TrazabilidadPedido trazabilidad = new TrazabilidadPedido();
+                                            trazabilidad.setPedidoId(savePedido.getId());
+                                            trazabilidad.setClienteId(savePedido.getClienteId());
+                                            trazabilidad.setEmpleadoId(userId);
+                                            trazabilidad.setEstadoNuevo(savePedido.getEstado());
+                                            trazabilidad.setEstadoAnterior(estadoPedidoAnterior);
+                                            trazabilidad.setFechaCambio(LocalDateTime.now());
+
+                                            return trazabilidadRepository.save(trazabilidad)
+                                                    .thenReturn("El estado del pedido se ha actualizado exitosamente")
+                                                    .onErrorResume(e -> Mono.error(new IllegalArgumentException("Error al actualizar el estado del pedido " + e.getMessage())));
+                                        });
+                            });
+                });
 
     }
 
     @Transactional
     public Mono<String> cambiarEstadoEntregadoPedido(String token, String idPedido, String pinSeguridad) {
-        Map<String, Object> usuario = usuarioClient.validateToken(token);
-        String rol = (String) usuario.get("rol");
 
-        if(!"EMPLEADO".equalsIgnoreCase(rol)){
-          return Mono.error( new IllegalArgumentException("No tiene permisos para realizar esta acción, solo los roles empleados"));
-        }
+        return Mono.fromCallable(()-> usuarioClient.validateToken(token))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(usuario -> {
+                    String rol = (String) usuario.get("rol");
 
-        return Mono.justOrEmpty(pedidoRepository.findById(idPedido))
-                .flatMap(pedido -> {
-                    if(!EstadoPedido.LISTO.equals(pedido.getEstado())){
-                        return Mono.error(new IllegalArgumentException("El pedido no está en estado LISTO"));
+                    if(!"EMPLEADO".equalsIgnoreCase(rol)){
+                        return Mono.error( new IllegalArgumentException("No tiene permisos para realizar esta acción, solo los roles empleados"));
                     }
 
-                    if(EstadoPedido.ENTREGADO.equals(pedido.getEstado())){
-                        return Mono.error(new IllegalArgumentException("El pedido ya ha sido entregado y no puede modificarse"));
-                    }
+                    return Mono.justOrEmpty(pedidoRepository.findById(idPedido))
+                            .switchIfEmpty(Mono.error(new IllegalArgumentException("El pedido no existe")))
+                            .flatMap(pedido -> {
+                                if(!EstadoPedido.LISTO.equals(pedido.getEstado())){
+                                    return Mono.error(new IllegalArgumentException("El pedido no está en estado LISTO"));
+                                }
 
-                    if(!pinSeguridad.equals(pedido.getPinSeguridad())){
-                        return Mono.error(new IllegalArgumentException("El pin de seguridad es incorrecto"));
-                    }
+                                if(EstadoPedido.ENTREGADO.equals(pedido.getEstado())){
+                                    return Mono.error(new IllegalArgumentException("El pedido ya ha sido entregado y no puede modificarse"));
+                                }
 
-                    return Mono.fromCallable(() -> actualizarEstadoPedido(token, pedido.getId(), EstadoPedido.ENTREGADO.toString()))
-                            .thenReturn("El pedido ha sido modificado a ENTREGADO correctamente")
-                            .onErrorResume(e -> Mono.error(new RuntimeException("Error al actualizar el estado del pedido " + e.getMessage())));
+                                if(!pinSeguridad.equals(pedido.getPinSeguridad())){
+                                    return Mono.error(new IllegalArgumentException("El pin de seguridad es incorrecto"));
+                                }
 
-                }).switchIfEmpty(Mono.error(new IllegalArgumentException("pedido no encontrado")));
+                                return actualizarEstadoPedido(token, pedido.getId(), EstadoPedido.ENTREGADO.toString())
+                                        .thenReturn("El pedido ha sido modificado a ENTREGADO correctamente")
+                                        .onErrorResume(e -> Mono.error(new RuntimeException("Error al actualizar el estado del pedido " + e.getMessage())));
+
+                            });
+                });
+
     }
 
     @Transactional
     public Mono<String> cancelarPedido(String token, String idPedido){
 
-        Map<String, Object> usuario = usuarioClient.validateToken(token);
-        String rol = (String) usuario.get("rol");
+        return Mono.fromCallable(()-> usuarioClient.validateToken(token))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(usuario -> {
+                    String rol = (String) usuario.get("rol");
 
-        if(!"CLIENTE".equalsIgnoreCase(rol)){
-            return Mono.error(new IllegalArgumentException("No tiene permisos, solo el rol tipo CLIENTE puede realizar esta acción"));
-        }
-
-        return Mono.justOrEmpty(pedidoRepository.findById(idPedido))
-                .flatMap(pedido -> {
-                    if(!EstadoPedido.PENDIENTE.equals(pedido.getEstado())){
-                        return Mono.error(new IllegalArgumentException("Lo sentimos, su pedido ya esta EN_PREPARACION y no puede ser cancelado"));
+                    if(!"CLIENTE".equalsIgnoreCase(rol)){
+                        return Mono.error(new IllegalArgumentException("No tiene permisos, solo el rol tipo CLIENTE puede realizar esta acción"));
                     }
 
-                    return Mono.fromCallable(() -> actualizarEstadoPedido(token, pedido.getId(), EstadoPedido.CANCELADO.toString()))
-                            .thenReturn("El pedido fue cancelado con exito")
-                            .onErrorResume(e ->  Mono.error(new RuntimeException("Error al cancelar el pedido " + e.getMessage())));
-                }).switchIfEmpty(Mono.error(new IllegalArgumentException("Pedido no encontrado")));
+                    return Mono.justOrEmpty(pedidoRepository.findById(idPedido))
+                            .switchIfEmpty(Mono.error(new IllegalArgumentException("El pedido no existe")))
+                            .flatMap(pedido -> {
+                                if(!EstadoPedido.PENDIENTE.equals(pedido.getEstado())){
+                                    return Mono.error(new IllegalArgumentException("Lo sentimos, su pedido ya esta EN_PREPARACION y no puede ser cancelado"));
+                                }
+
+                                return actualizarEstadoPedido(token, pedido.getId(), EstadoPedido.CANCELADO.toString())
+                                        .thenReturn("El pedido fue cancelado con exito")
+                                        .onErrorResume(e ->  Mono.error(new RuntimeException("Error al cancelar el pedido " + e.getMessage())));
+                            });
+                });
+
     }
 
     public Flux<String> obtenerEficienciaPedido(String token){
-        Map<String, Object> usuario = usuarioClient.validateToken(token);
-        String rol = (String) usuario.get("rol");
 
-        if(!"PROPIETARIO".equalsIgnoreCase(rol)){
-            return Flux.error(new IllegalArgumentException("No tienes permisos para esta acción"));
-        }
+        return Mono.<Map<String, Object>>fromCallable(()-> usuarioClient.validateToken(token))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMapMany(usuario -> {
+                    String rol = (String) usuario.get("rol");
 
-        return Flux.fromIterable(pedidoRepository.findAll())
-                .filter(pedido -> pedido.getFechaEntrega() != null)
-                .map(pedido -> {
-                    Duration duracion = Duration.between(pedido.getFechaCreacion(), pedido.getFechaEntrega());
-                    return String.format("Pedido %s: Tiempo total %d minutos", pedido.getId(), duracion.toMinutes());
+                    if(!"PROPIETARIO".equalsIgnoreCase(rol)){
+                        return Flux.error(new IllegalArgumentException("No tienes permisos para esta acción"));
+                    }
+
+                    return Flux.defer(()-> Flux.fromIterable(pedidoRepository.findAll()))
+                            .subscribeOn(Schedulers.boundedElastic())
+                            .filter(pedido -> pedido.getFechaEntrega() != null)
+                            .map(pedido -> {
+                                Duration duracion = Duration.between(pedido.getFechaCreacion(), pedido.getFechaEntrega());
+                                return String.format("Pedido %s: Tiempo total %d minutos", pedido.getId(), duracion.toMinutes());
+                            });
                 });
     }
 
     public Flux<String> rankingEficienciaEmpleados(String token){
-        Map<String, Object> usuario = usuarioClient.validateToken(token);
-        String rol = (String) usuario.get("rol");
 
-        if(!"PROPIETARIO".equalsIgnoreCase(rol)){
-            return Flux.error(new IllegalArgumentException("No tienes permisos para esta acción"));
-        }
+        return Mono.fromCallable(()-> usuarioClient.validateToken(token))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMapMany(usuario -> {
+                    String rol = (String) usuario.get("rol");
 
-        return Flux.fromIterable(pedidoRepository.findAll())
-                .filter(pedido -> pedido.getFechaEntrega() != null)
-                .groupBy(Pedido::getEmpleadoId)
-                .flatMap(group -> group.collectList().map(listaPedidos -> {
-                        long totalTiempo = listaPedidos.stream()
-                                .mapToLong(p -> Duration.between(p.getFechaCreacion(), p.getFechaEntrega()).toMinutes())
-                                .sum();
-                        long promedioTiempo = totalTiempo / listaPedidos.size();
+                    if(!"PROPIETARIO".equalsIgnoreCase(rol)){
+                        return Flux.error(new IllegalArgumentException("No tienes permisos para esta acción"));
+                    }
 
-                        return String.format("Empleado %d: Tiempo promedio de entrega %d minutos",
-                                listaPedidos.get(0).getEmpleadoId(), promedioTiempo
+                    return Flux.defer(()-> Flux.fromIterable(pedidoRepository.findAll()))
+                            .subscribeOn(Schedulers.boundedElastic())
+                            .filter(pedido -> pedido.getFechaEntrega() != null)
+                            .groupBy(Pedido::getEmpleadoId)
+                            .flatMap(group -> group.collectList().map(listaPedidos -> {
+                                long totalTiempo = listaPedidos.stream()
+                                        .mapToLong(p -> Duration.between(p.getFechaCreacion(), p.getFechaEntrega()).toMinutes())
+                                        .sum();
+                                long promedioTiempo = totalTiempo / listaPedidos.size();
+
+                                return String.format("Empleado %d: Tiempo promedio de entrega %d minutos",
+                                        listaPedidos.get(0).getEmpleadoId(), promedioTiempo
                                 );
-                        })).sort();
+                            })).sort();
+                });
+    }
+
+    private Long convertirUserId(Object objectId){
+        if(objectId instanceof Integer){
+            return ((Integer) objectId).longValue();
+        } else if(objectId instanceof Long){
+            return (Long) objectId;
+        } else {
+            throw new IllegalArgumentException("Tipo de userId desconocido: " + objectId.getClass().getName());
+        }
     }
 }

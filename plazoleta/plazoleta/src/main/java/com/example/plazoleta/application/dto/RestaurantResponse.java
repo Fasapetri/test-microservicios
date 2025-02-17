@@ -20,5 +20,5 @@ public class RestaurantResponse {
     private String phone;
 
     @Schema(description = "URL del logo del restaurante", example = "https://example.com/logo.png")
-    private String urlLogo;
+    private String url_logo;
 }

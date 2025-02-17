@@ -17,7 +17,7 @@ public class DishResponse {
     private String description;
 
     @Schema(description = "URL de la imagen del plato", example = "https://example.com/spaghetti.png")
-    private String urlImage;
+    private String url_image;
 
     @Schema(description = "Categoría del plato", example = "Italiana")
     private String category;

@@ -42,6 +42,7 @@ public class DishUseCase implements IDishServicePort {
             throw new DishException(DishExceptionType.RESTAURANT_DOES_NOT_BELONG);
         }
 
+        dish.setActive(true);
         return iDishPersistencePort.saveDish(dish);
     }
 

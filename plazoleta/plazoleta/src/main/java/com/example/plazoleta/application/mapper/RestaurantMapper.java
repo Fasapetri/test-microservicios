@@ -15,7 +15,7 @@ import java.util.List;
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface RestaurantMapper {
 
-    RestaurantMapper INSTANCE = Mappers.getMapper(com.example.plazoleta.application.mapper.RestaurantMapper.class);
+    RestaurantMapper INSTANCE = Mappers.getMapper(RestaurantMapper.class);
 
     @Mapping(target = "id", ignore = true)
     Restaurant toRestaurant(RestaurantRequest restaurantRequest);

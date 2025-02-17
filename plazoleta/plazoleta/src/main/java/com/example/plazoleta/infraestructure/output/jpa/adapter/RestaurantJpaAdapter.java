@@ -8,6 +8,8 @@ import com.example.plazoleta.infraestructure.output.jpa.exception.RestaurantEnti
 import com.example.plazoleta.infraestructure.output.jpa.mapper.RestaurantEntityMapper;
 import com.example.plazoleta.infraestructure.output.jpa.repository.IRestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -20,13 +22,17 @@ public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
 
     private final IRestaurantRepository iRestaurantRepository;
     private final RestaurantEntityMapper restaurantEntityMapper;
+    private final Logger logger = LoggerFactory.getLogger(RestaurantJpaAdapter.class);
 
     @Override
     public Restaurant saveRestaurant(Restaurant restaurant) {
         if(iRestaurantRepository.existsByNit(restaurant.getNit())){
             throw new RestaurantEntityException(RestaurantEntityExceptionType.EXIST_RESTAURANT);
         }
+        logger.info("VALORRR " + restaurant.getUrl_logo());
         RestaurantEntity restaurantEntity = iRestaurantRepository.save(restaurantEntityMapper.toRestaurantEntity(restaurant));
+        logger.info("VALORRR " + restaurantEntity.getUrl_logo());
+
         return restaurantEntityMapper.toRestaurant(restaurantEntity);
     }
 

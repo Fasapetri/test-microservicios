@@ -23,8 +23,8 @@ public class RestaurantRequest {
     private String phone;
 
     @Schema(description = "URL del logo del restaurante", example = "https://example.com/logo.png")
-    private String urlLogo;
+    private String url_logo;
 
     @Schema(description = "ID del propietario", example = "1")
-    private Long idProprietary;
+    private Long id_proprietary;
 }

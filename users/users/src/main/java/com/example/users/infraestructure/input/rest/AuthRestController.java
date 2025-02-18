@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,5 +68,30 @@ public class AuthRestController {
     @GetMapping("/validate")
     public ResponseEntity<TokenValidationResponse> validateToken(@RequestHeader("Authorization") String token) {
         return ResponseEntity.ok(authHandler.validateToken(token.replace("Bearer ", "")));
+    }
+
+    @PostMapping("/invalidate")
+    public ResponseEntity<String> invalidateToken(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+        String token = authHandler.extractToken(authorizationHeader);
+
+        if (token == null) {
+            return ResponseEntity.badRequest().body("Token no encontrado en el header Authorization");
+        }
+
+        authHandler.logoutUser(token);
+        return ResponseEntity.ok("Cierre de sesión exitoso.");
+    }
+
+    @GetMapping("/is-invalid")
+    public ResponseEntity<Boolean> isTokenInvalid(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+        String token = authHandler.extractToken(authorizationHeader);
+
+        if (token == null) {
+            return ResponseEntity.badRequest().body(false);
+        }
+
+        return ResponseEntity.ok(authHandler.isTokenRevoked(token));
     }
 }

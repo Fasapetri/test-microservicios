@@ -79,4 +79,14 @@ public class JwtUtil {
     private boolean isTokenExpired(String token) {
         return extractClaims(token).getExpiration().before(new Date());
     }
+
+    public Date getExpirationDate(String token) {
+        return extractClaims(token).getExpiration();
+    }
+
+    public long getExpirationTime(String token) {
+        Date expirationDate = getExpirationDate(token);
+        long currentTime = System.currentTimeMillis();
+        return expirationDate.getTime() - currentTime;
+    }
 }

@@ -15,12 +15,10 @@ public class JwtUtil {
 
     private final SecretKey secretKey;
 
-    // Cargar la clave secreta desde application.properties y decodificarla
     public JwtUtil(@Value("${jwt.secret}") String secret) {
         this.secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
     }
 
-    // Extraer el usuario (ID) desde el token
     public Long extractUserId(String token) {
         Object userId = getClaims(token).get("userId");
         if(userId instanceof Integer){
@@ -32,7 +30,6 @@ public class JwtUtil {
         }
     }
 
-    // Extraer los roles del usuario
     public String extractRole(String token) {
         return (String) getClaims(token).get("role");
     }
@@ -41,7 +38,6 @@ public class JwtUtil {
         return getClaims(token).getSubject();
     }
 
-    // Validar si el token es válido
     public boolean isTokenValid(String token) {
         try {
             Claims claims = getClaims(token);
@@ -51,7 +47,6 @@ public class JwtUtil {
         }
     }
 
-    // Decodificar el token y obtener los Claims
     private Claims getClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)

@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,6 +71,7 @@ public class DishRestController {
             }
     )
     @PutMapping("/{dishId}/update-dish")
+    @CacheEvict(value = "dishRestaurantCache", key = "#id_dish")
     public ResponseEntity<DishResponse> updateDish(
             @Parameter(description = "ID del plato a actualizar", required = true)
             @PathVariable("dishId") Long id_dish,
@@ -125,12 +128,13 @@ public class DishRestController {
             }
     )
     @GetMapping("/{id}/dish")
-    public ResponseEntity<List<DishResponse>> getDishRestaurant(
+    @Cacheable(value = "dishRestaurantCache", key = "#id_restaurante")
+    public List<DishResponse> getDishRestaurant(
             @Parameter(description = "ID del restaurante cuyos platos se desean obtener", required = true)
             @PathVariable("id") Long id_restaurante,
             @Parameter(description = "Token de autenticación", required = true)
             @RequestHeader("Authorization") String token){
-        return ResponseEntity.ok(dishHandler.getDishRestaurant(id_restaurante, token));
+        return dishHandler.getDishRestaurant(id_restaurante, token);
     }
 
     @Operation(

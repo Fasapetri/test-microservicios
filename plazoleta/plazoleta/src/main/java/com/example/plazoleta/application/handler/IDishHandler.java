@@ -10,13 +10,13 @@ public interface IDishHandler {
 
     DishResponse saveDish(DishRequest dishRequest, String token);
 
-    DishResponse updateDish(DishRequest dishRequest, String token);
+    DishResponse updateDish(Long id_dish, DishRequest dishRequest, String token);
 
     DishResponse updateDishStatus(Long idDish, String token);
 
-    List<DishResponse> getAllDish();
+    List<DishResponse> getAllDish(String token);
 
     List<DishResponse> getDishRestaurant(Long idRestaurant, String token);
 
-    DishResponse findById(Long dishId);
+    DishResponse findById(Long dishId, String token);
 }

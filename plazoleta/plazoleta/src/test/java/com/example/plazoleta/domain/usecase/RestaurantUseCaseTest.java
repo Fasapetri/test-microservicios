@@ -46,7 +46,7 @@ class RestaurantUseCaseTest {
         testRestaurant.setNit("1234567890");
         testRestaurant.setAddress("Calle Falsa 123");
         testRestaurant.setPhone("+573001234567");
-        testRestaurant.setUrl_Logo("http://example.com/logo.png");
+        testRestaurant.setUrl_logo("http://example.com/logo.png");
         testRestaurant.setId_proprietary(2L);
 
         testUserAdmin = new User(1L, "admin@example.com", "ADMIN");
@@ -121,14 +121,14 @@ class RestaurantUseCaseTest {
         testRestaurant2.setNit("12345678852");
         testRestaurant2.setAddress("Calle Falsa 1234");
         testRestaurant2.setPhone("+573001234570");
-        testRestaurant2.setUrl_Logo("http://example.com/logo2.png");
+        testRestaurant2.setUrl_logo("http://example.com/logo2.png");
         testRestaurant2.setId_proprietary(2L);
 
         List<Restaurant> listRestaurant = List.of(testRestaurant, testRestaurant2);
 
         when(iRestaurantPersistencePort.getAllrestaurant()).thenReturn(listRestaurant);
 
-        List<Restaurant> result = restaurantUseCase.getAllrestaurant();
+        List<Restaurant> result = restaurantUseCase.getAllrestaurant(token);
 
         assertNotNull(result);
         assertFalse(result.isEmpty());

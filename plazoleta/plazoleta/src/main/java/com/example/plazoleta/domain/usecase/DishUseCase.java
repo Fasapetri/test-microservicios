@@ -47,7 +47,7 @@ public class DishUseCase implements IDishServicePort {
     }
 
     @Override
-    public Dish updateDish(Dish dish, String token) {
+    public Dish updateDish(Long id_dish, Dish dish, String token) {
 
         User loginUser = iJwtServicePort.validateToken(token);
 
@@ -55,20 +55,21 @@ public class DishUseCase implements IDishServicePort {
             throw new DishException(DishExceptionType.INVALID_ROL_UPDATE_DISH);
         }
 
-        Dish oldDish = iDishPersistencePort.findById(dish.getId());
+        Dish oldDish = iDishPersistencePort.findById(id_dish);
 
         if(oldDish == null){
             throw new DishException(DishExceptionType.NOT_EXISTS_DISH);
         }
 
-        Restaurant restaurant = dish.getRestaurant();
+        Restaurant restaurant = oldDish.getRestaurant();
 
         if(!restaurant.getId_proprietary().equals(loginUser.getId())){
-            throw new DishException(DishExceptionType.NOT_EXISTS_RESTAURANT);
+            throw new DishException(DishExceptionType.RESTAURANT_DOES_NOT_BELONG);
         }
 
         dish.setId(oldDish.getId());
-
+        dish.setRestaurant(oldDish.getRestaurant());
+        dish.setActive(oldDish.getActive());
         return iDishPersistencePort.updateDish(dish);
     }
 
@@ -87,30 +88,36 @@ public class DishUseCase implements IDishServicePort {
             throw new DishException(DishExceptionType.NOT_EXISTS_DISH);
         }
 
-        if (!dish.getRestaurant().getId_proprietary().equals(loginUser.getId())){
+        if (dish.getRestaurant().getId_proprietary() == null || !dish.getRestaurant().getId_proprietary().equals(loginUser.getId())){
             throw new DishException(DishExceptionType.RESTAURANT_DOES_NOT_BELONG);
         }
 
         dish.setActive(!dish.getActive());
-        return iDishPersistencePort.updateDishStatus(dish.getId());
+        return iDishPersistencePort.updateDish(dish);
     }
 
     @Override
-    public List<Dish> getAllDish() {
+    public List<Dish> getAllDish(String token) {
         return iDishPersistencePort.getAllDish();
     }
 
     @Override
     public List<Dish> getDishRestaurant(Long idRestaurant, String token) {
+        User user = iJwtServicePort.validateToken(token);
         Restaurant restaurant = iRestaurantPersistencePort.findById(idRestaurant);
+
         if(restaurant == null){
             throw new DishException(DishExceptionType.NOT_EXISTS_RESTAURANT);
+        }
+
+        if(!user.getId().equals(restaurant.getId_proprietary())){
+            throw new DishException(DishExceptionType.RESTAURANT_DOES_NOT_BELONG);
         }
         return iDishPersistencePort.getDishRestaurant(idRestaurant);
     }
 
     @Override
-    public Dish findById(Long dishId) {
+    public Dish findById(Long dishId, String token) {
         return iDishPersistencePort.findById(dishId);
     }
 }

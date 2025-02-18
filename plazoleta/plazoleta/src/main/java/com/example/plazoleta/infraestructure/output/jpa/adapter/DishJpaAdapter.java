@@ -33,7 +33,10 @@ public class DishJpaAdapter implements IDishPersistencePort {
 
     @Override
     public Dish updateDishStatus(Long idDish) {
-        DishEntity dishEntity = iDishRepository.save(idDish);
+        DishEntity dish = iDishRepository.findById(idDish)
+                .orElseThrow(() -> new DishEntityException(DishEntityExceptionType.DISH_NOT_FOUND));
+
+        DishEntity dishEntity = iDishRepository.save(dish);
         return dishEntityMapper.toDish(dishEntity);
     }
 

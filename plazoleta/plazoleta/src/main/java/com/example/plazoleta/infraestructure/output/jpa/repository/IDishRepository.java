@@ -8,6 +8,4 @@ import java.util.List;
 public interface IDishRepository extends JpaRepository<DishEntity, Long> {
 
     List<DishEntity> findAllByRestaurantId(Long id);
-
-    DishEntity save(Long id);
 }

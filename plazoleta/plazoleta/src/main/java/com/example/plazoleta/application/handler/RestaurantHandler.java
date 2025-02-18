@@ -30,8 +30,8 @@ public class RestaurantHandler implements IRestaurantHandler{
     }
 
     @Override
-    public List<RestaurantResponse> getAllrestaurant() {
-        return restaurantMapper.toListRestaurantResponse(iRestaurantServicePort.getAllrestaurant());
+    public List<RestaurantResponse> getAllrestaurant(String token) {
+        return restaurantMapper.toListRestaurantResponse(iRestaurantServicePort.getAllrestaurant(token));
     }
 
     @Override

@@ -3,9 +3,11 @@ package com.example.plazoleta.application.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
 @Schema(description = "Datos de respuesta de un plato")
-public class DishResponse {
+public class DishResponse implements Serializable {
 
     @Schema(description = "Nombre del plato", example = "Spaghetti Bolognese")
     private String name;

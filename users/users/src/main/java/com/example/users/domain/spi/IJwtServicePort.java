@@ -9,4 +9,8 @@ public interface IJwtServicePort {
     Long extractUserId(String token);
 
     String extractEmail(String token);
+
+    Long getExpirationTime(String token);
+
+
 }

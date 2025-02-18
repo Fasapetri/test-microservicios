@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -117,6 +118,7 @@ public class RestaurantRestController {
             }
     )
     @GetMapping("/findRestaurant/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<RestaurantResponse> findByRestaurantId(
             @Parameter(description = "ID del restaurante a buscar", required = true)
             @PathVariable("id") Long idRestaurant){

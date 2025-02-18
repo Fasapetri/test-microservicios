@@ -31,6 +31,11 @@ public class JwtServiceAdapter implements IJwtServicePort {
         return jwtUtil.extractEmail(cleanToken(token));
     }
 
+    @Override
+    public Long getExpirationTime(String token) {
+        return jwtUtil.getExpirationTime(token);
+    }
+
     private String cleanToken(String token){
         return token.replace("Bearer", "");
     }

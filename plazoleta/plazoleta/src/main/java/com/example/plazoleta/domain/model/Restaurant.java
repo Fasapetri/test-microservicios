@@ -2,6 +2,7 @@ package com.example.plazoleta.domain.model;
 
 import com.example.plazoleta.domain.model.Dish;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -23,4 +24,5 @@ public class Restaurant {
     private Long id_proprietary;
 
     private List<Dish> dishes;
+
 }

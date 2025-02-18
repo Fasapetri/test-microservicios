@@ -106,17 +106,18 @@ class DishUseCaseTest {
     @Test
     void testUpdateDishSuccess(){
         Dish testUpdatedish = new Dish();
-        testUpdatedish.setId(1L);
         testUpdatedish.setName("Pizza");
         testUpdatedish.setPrice(150);
         testUpdatedish.setRestaurant(testRestaurant);
         testUpdatedish.setActive(true);
 
+        Long id_dish = 1L;
+
         when(iJwtServicePort.validateToken(token)).thenReturn(testPropietario);
         when(iDishPersistencePort.findById(testDish.getId())).thenReturn(testDish);
         when(iDishPersistencePort.updateDish(any(Dish.class))).thenReturn(testUpdatedish);
 
-        Dish dish = dishUseCase.updateDish(testUpdatedish, token);
+        Dish dish = dishUseCase.updateDish(id_dish, testUpdatedish, token);
 
         assertNotNull(dish);
         assertEquals(dish.getPrice(), 150);
@@ -127,12 +128,13 @@ class DishUseCaseTest {
 
     @Test
     void testUpdateDishInvalidRolException(){
+        Long id_dish = 1L;
         User testEmpleado = new User(3L, "empleado@example.com", "EMPLEADO");
 
         when(iJwtServicePort.validateToken(token)).thenReturn(testEmpleado);
 
         DishException exception = assertThrows(DishException.class, ()->{
-            dishUseCase.updateDish(testDish, token);
+            dishUseCase.updateDish(id_dish, testDish, token);
         });
 
         assertEquals(DishExceptionType.INVALID_ROL_UPDATE_DISH, exception.getDishType());
@@ -141,11 +143,12 @@ class DishUseCaseTest {
 
     @Test
     void testUpdateDishNotExistsDishException(){
+        Long id_dish = 1L;
         when(iJwtServicePort.validateToken(token)).thenReturn(testPropietario);
-        when(iDishPersistencePort.findById(testDish.getId())).thenReturn(null);
+        when(iDishPersistencePort.findById(id_dish)).thenReturn(null);
 
         DishException exception = assertThrows(DishException.class, ()->{
-            dishUseCase.updateDish(testDish, token);
+            dishUseCase.updateDish(id_dish, testDish, token);
         });
 
         assertEquals(DishExceptionType.NOT_EXISTS_DISH, exception.getDishType());
@@ -156,7 +159,7 @@ class DishUseCaseTest {
     void testGetAllDishSuccess(){
         when(iDishPersistencePort.getAllDish()).thenReturn(List.of(testDish));
 
-        List<Dish> listDish = dishUseCase.getAllDish();
+        List<Dish> listDish = dishUseCase.getAllDish(token);
 
         assertNotNull(listDish);
         assertEquals(listDish.size(), 1);

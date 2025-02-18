@@ -8,13 +8,13 @@ public interface IDishServicePort {
 
     Dish saveDish(Dish dish, String token);
 
-    Dish updateDish(Dish dish, String token);
+    Dish updateDish(Long id_dish, Dish dish, String token);
 
     Dish updateDishStatus(Long idDish, String token);
 
-    List<Dish> getAllDish();
+    List<Dish> getAllDish(String token);
 
     List<Dish> getDishRestaurant(Long idRestaurant, String token);
 
-    Dish findById(Long dishId);
+    Dish findById(Long dishId, String token);
 }

@@ -12,7 +12,7 @@ public interface IRestaurantHandler {
 
     RestaurantResponse saveRestaurant(RestaurantRequest restaurantRequest, String token);
 
-    List<RestaurantResponse> getAllrestaurant();
+    List<RestaurantResponse> getAllrestaurant(String token);
 
     boolean existsRestaurant(Long idRestaurant, String token);
 

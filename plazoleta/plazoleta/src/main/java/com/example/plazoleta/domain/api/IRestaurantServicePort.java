@@ -10,7 +10,7 @@ public interface IRestaurantServicePort {
 
     Restaurant saveRestaurant(Restaurant restaurant, String token);
 
-    List<Restaurant> getAllrestaurant();
+    List<Restaurant> getAllrestaurant(String token);
 
     boolean existsRestaurant(Long idRestaurant, String token);
 

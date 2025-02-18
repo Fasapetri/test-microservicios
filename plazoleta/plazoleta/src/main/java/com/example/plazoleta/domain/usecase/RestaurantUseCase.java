@@ -55,7 +55,7 @@ public class RestaurantUseCase implements IRestaurantServicePort {
     }
 
     @Override
-    public List<Restaurant> getAllrestaurant() {
+    public List<Restaurant> getAllrestaurant(String token) {
         return iRestaurantPersistencePort.getAllrestaurant();
     }
 

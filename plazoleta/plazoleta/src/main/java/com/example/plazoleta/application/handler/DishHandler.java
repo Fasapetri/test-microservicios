@@ -27,9 +27,9 @@ public class DishHandler implements IDishHandler{
     }
 
     @Override
-    public DishResponse updateDish(DishRequest dishRequest, String token) {
+    public DishResponse updateDish(Long id_dish, DishRequest dishRequest, String token) {
         Dish dish = dishMapper.toDish(dishRequest);
-        iDishServicePort.updateDish(dish, token);
+        iDishServicePort.updateDish(id_dish, dish, token);
         return dishMapper.toDishResponse(dish);
     }
 
@@ -39,8 +39,8 @@ public class DishHandler implements IDishHandler{
     }
 
     @Override
-    public List<DishResponse> getAllDish() {
-        return dishMapper.toListDishResponse(iDishServicePort.getAllDish());
+    public List<DishResponse> getAllDish(String token) {
+        return dishMapper.toListDishResponse(iDishServicePort.getAllDish(token));
     }
 
     @Override
@@ -49,7 +49,7 @@ public class DishHandler implements IDishHandler{
     }
 
     @Override
-    public DishResponse findById(Long dishId) {
-        return dishMapper.toDishResponse(iDishServicePort.findById(dishId));
+    public DishResponse findById(Long dishId, String token) {
+        return dishMapper.toDishResponse(iDishServicePort.findById(dishId, token));
     }
 }

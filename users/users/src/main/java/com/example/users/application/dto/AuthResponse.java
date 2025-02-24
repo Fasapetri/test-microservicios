@@ -1,17 +1,21 @@
 package com.example.users.application.dto;
 
+import com.example.users.application.constants.AuthResponseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Builder
-@Schema(description = "Respuesta con el token de autenticación")
+@Schema(description = AuthResponseConstants.AUTH_RESPONSE_DESCRIPTION)
 public class AuthResponse {
 
-    @Schema(description = "Correo del usuario", example = "test@example.com")
+    @Schema(description = AuthResponseConstants.EMAIL_DESCRIPTION, example = AuthResponseConstants.EMAIL_EXAMPLE)
     private String email;
 
-    @Schema(description = "Token de acceso JWT", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    @Schema(description = AuthResponseConstants.TOKEN_DESCRIPTION, example = AuthResponseConstants.TOKEN_EXAMPLE)
     private String token;
 }

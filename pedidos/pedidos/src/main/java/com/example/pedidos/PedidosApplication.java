@@ -2,10 +2,10 @@ package com.example.pedidos;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 
 @SpringBootApplication
-@EnableFeignClients(basePackages = "com.example.pedidos.client")
+@EnableReactiveMongoRepositories(basePackages = "com.example.pedidos.infraestructure.output.mongo.repository")
 public class PedidosApplication {
 
 	public static void main(String[] args) {

@@ -1,33 +1,35 @@
 package com.example.plazoleta.application.dto;
 
+import com.example.plazoleta.application.constants.RestaurantRequestConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-@Schema(description = "Datos para registrar un nuevo restaurante")
+@Schema(description = RestaurantRequestConstants.DESC_RESTAURANT_REQUEST)
 public class RestaurantRequest {
 
-    @Schema(description = "identificador del restaurante", example = "1")
+    @Schema(description = RestaurantRequestConstants.DESC_ID, example = RestaurantRequestConstants.EXAMPLE_ID)
     private Long id;
 
-    @Schema(description = "Nombre del restaurante", example = "La Casa de la Pasta")
+    @Schema(description = RestaurantRequestConstants.DESC_NAME, example = RestaurantRequestConstants.EXAMPLE_NAME)
     private String name;
 
-    @Pattern(regexp = "\\d{10}", message = "El NIT debe tener 10 dígitos numéricos")
-    @Schema(description = "Número de Identificación Tributaria (NIT)", example = "1234567890")
+    @Pattern(regexp = RestaurantRequestConstants.REGEX_NIT, message = RestaurantRequestConstants.MSG_NIT_VALIDATION)
+    @Schema(description = RestaurantRequestConstants.DESC_NIT, example = RestaurantRequestConstants.EXAMPLE_NIT)
     private String nit;
 
-    @Schema(description = "Dirección del restaurante", example = "Calle 123 #45-67")
+    @Schema(description = RestaurantRequestConstants.DESC_ADDRESS, example = RestaurantRequestConstants.EXAMPLE_ADDRESS)
     private String address;
 
-    @Pattern(regexp = "\\+57\\d{10}", message = "El número de teléfono debe estar en formato internacional, ej: +573001234567")
-    @Schema(description = "Número de teléfono", example = "+573001234567")
+    @Pattern(regexp = RestaurantRequestConstants.REGEX_PHONE, message = RestaurantRequestConstants.MSG_PHONE_VALIDATION)
+    @Schema(description = RestaurantRequestConstants.DESC_PHONE, example = RestaurantRequestConstants.EXAMPLE_PHONE)
     private String phone;
 
-    @Schema(description = "URL del logo del restaurante", example = "https://example.com/logo.png")
+    @Schema(description = RestaurantRequestConstants.DESC_URL_LOGO, example = RestaurantRequestConstants.EXAMPLE_URL_LOGO)
     private String url_logo;
 
-    @Schema(description = "ID del propietario", example = "1")
+    @Schema(description = RestaurantRequestConstants.DESC_ID_PROPRIETARY, example = RestaurantRequestConstants.EXAMPLE_ID_PROPRIETARY)
     private Long id_proprietary;
+
 }

@@ -25,45 +25,34 @@ public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
     private final Logger logger = LoggerFactory.getLogger(RestaurantJpaAdapter.class);
 
     @Override
-    public Restaurant saveRestaurant(Restaurant restaurant) {
-        if(iRestaurantRepository.existsByNit(restaurant.getNit())){
-            throw new RestaurantEntityException(RestaurantEntityExceptionType.EXIST_RESTAURANT);
-        }
-        logger.info("VALORRR " + restaurant.getUrl_logo());
-        RestaurantEntity restaurantEntity = iRestaurantRepository.save(restaurantEntityMapper.toRestaurantEntity(restaurant));
-        logger.info("VALORRR " + restaurantEntity.getUrl_logo());
-
-        return restaurantEntityMapper.toRestaurant(restaurantEntity);
+    public Restaurant saveRestaurant(Restaurant restaurantToCreate) {
+        RestaurantEntity mapperRestaurantEntity = iRestaurantRepository.save(restaurantEntityMapper.toRestaurantEntity(restaurantToCreate));
+        return restaurantEntityMapper.toRestaurant(mapperRestaurantEntity);
     }
 
     @Override
     public List<Restaurant> getAllrestaurant() {
-        List<Restaurant> listRestaurant = restaurantEntityMapper.toListRestaurant(iRestaurantRepository.findAll());
-        if(listRestaurant.isEmpty()){
-            throw new RestaurantEntityException(RestaurantEntityExceptionType.RESTAURANT_NOT_DATA);
-        }
-        return listRestaurant;
+        return restaurantEntityMapper.toListRestaurant(iRestaurantRepository.findAll());
     }
 
     @Override
-    public boolean existsRestaurant(Long idRestaurant) {
-        return iRestaurantRepository.existsById(idRestaurant);
+    public boolean existsRestaurant(Long findRestaurantId) {
+        return iRestaurantRepository.existsById(findRestaurantId);
     }
 
     @Override
-    public boolean existsByNit(String nit) {
-        return iRestaurantRepository.existsByNit(nit);
+    public boolean existsByNit(String findRestaurantNit) {
+        return iRestaurantRepository.existsByNit(findRestaurantNit);
     }
 
     @Override
-    public Restaurant findById(Long idRestaurant) {
-        return restaurantEntityMapper.toRestaurant(iRestaurantRepository.findById(idRestaurant)
-                .orElseThrow(() -> new RestaurantEntityException(RestaurantEntityExceptionType.RESTAURANT_NOT_FOUND)));
+    public Restaurant findById(Long findRestaurantId) {
+        return restaurantEntityMapper.toRestaurant(iRestaurantRepository.findById(findRestaurantId).orElse(null));
     }
 
     @Override
     public Page<Restaurant> findAllByOrderByNameAsc(Pageable pageable) {
-        Page<RestaurantEntity> restaurantEntities = iRestaurantRepository.findAllByOrderByNameAsc(pageable);
-        return restaurantEntities.map(restaurantEntityMapper::toRestaurant);
+        Page<RestaurantEntity> listRestaurantEntities = iRestaurantRepository.findAllByOrderByNameAsc(pageable);
+        return listRestaurantEntities.map(restaurantEntityMapper::toRestaurant);
     }
 }

@@ -7,6 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -28,12 +32,13 @@ public class JwtFilter extends OncePerRequestFilter {
         String authorizationHeader = request.getHeader("Authorization");
         String token = null;
         String email = null;
-    try{
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7).trim(); // Asegúrate de eliminar espacios adicionales
-            email = jwtUtil.extractEmail(token);
-            logger.info("Token procesado correctamente. Email extraído: {}" + email);
 
+        try{
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7).trim();
+            email = jwtUtil.extractEmail(token);
+
+            logger.info("Token procesado correctamente. Email extraído: {}" + email);
         }
 
         if (tokenBlackListAdapter.isTokenInvalidated(token)) {
@@ -42,11 +47,16 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = new User(email, "", new ArrayList<>());
+//            UserDetails userDetails = new User(email, "", authorities);
+
             if (jwtUtil.isTokenValid(token, email)) {
-                UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+                Authentication authentication = jwtUtil.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+ //               UsernamePasswordAuthenticationToken authenticationToken =
+   //                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+     //           SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
         }
     } catch (Exception e) {

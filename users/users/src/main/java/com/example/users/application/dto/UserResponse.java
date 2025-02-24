@@ -1,27 +1,31 @@
 package com.example.users.application.dto;
 
+import com.example.users.application.constants.UserResponseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
-@Data
-@Builder
-@Schema(description = "Respuesta con los datos del usuario")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Schema(description = UserResponseConstants.USER_RESPONSE_DESCRIPTION)
 public class UserResponse {
 
-    @Schema(description = "ID del usuario", example = "1")
+    @Schema(description = UserResponseConstants.ID_DESCRIPTION, example = UserResponseConstants.ID_EXAMPLE)
     private Long id;
 
-    @Schema(description = "Correo del usuario", example = "test@example.com")
+    @Schema(description = UserResponseConstants.EMAIL_DESCRIPTION, example = UserResponseConstants.EMAIL_EXAMPLE)
     private String email;
 
-    @Schema(description = "Rol que tendra el usuario en la plataforma", examples = {"ADMIN", "PROPIETARIO", "EMPLEADO", "CLIENTE"})
+    @Schema(description = UserResponseConstants.ROLE_DESCRIPTION, example = UserResponseConstants.ROLE_EXAMPLES)
     private String rol;
 
-    @Schema(description = "nombre del usuario", example = "Juan")
+    @Schema(description = UserResponseConstants.NAME_DESCRIPTION, example = UserResponseConstants.NAME_EXAMPLE)
     private String name;
 
-    @Schema(description = "Apellido del usuario", example = "Perez")
+    @Schema(description = UserResponseConstants.LAST_NAME_DESCRIPTION, example = UserResponseConstants.LAST_NAME_EXAMPLE)
     private String last_name;
+
+    @Schema(description = UserResponseConstants.PHONE_DESCRIPTION, example = UserResponseConstants.PHONE_EXAMPLE)
+    private String phone;
 }

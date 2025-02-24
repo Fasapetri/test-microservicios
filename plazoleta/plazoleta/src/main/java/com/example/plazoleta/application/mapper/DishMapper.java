@@ -2,7 +2,6 @@ package com.example.plazoleta.application.mapper;
 
 import com.example.plazoleta.application.dto.DishRequest;
 import com.example.plazoleta.application.dto.DishResponse;
-import com.example.plazoleta.application.dto.RestaurantResponse;
 import com.example.plazoleta.domain.model.Dish;
 import com.example.plazoleta.domain.model.Restaurant;
 import org.mapstruct.Mapper;

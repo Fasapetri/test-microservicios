@@ -18,40 +18,40 @@ import java.util.List;
 @Transactional
 public class RestaurantHandler implements IRestaurantHandler{
 
-    private final IRestaurantServicePort iRestaurantServicePort;
+    private final IRestaurantServicePort restaurantServicePort;
     private final RestaurantMapper restaurantMapper;
 
 
     @Override
-    public RestaurantResponse saveRestaurant(RestaurantRequest restaurantRequest, String token) {
-        Restaurant restaurant = restaurantMapper.toRestaurant(restaurantRequest);
-        iRestaurantServicePort.saveRestaurant(restaurant, token);
-        return restaurantMapper.toRestaurantResponse(restaurant);
+    public RestaurantResponse saveRestaurant(RestaurantRequest restaurantToCreate) {
+        Restaurant mapperRestaurant = restaurantMapper.toRestaurant(restaurantToCreate);
+        restaurantServicePort.saveRestaurant(mapperRestaurant);
+        return restaurantMapper.toRestaurantResponse(mapperRestaurant);
     }
 
     @Override
-    public List<RestaurantResponse> getAllrestaurant(String token) {
-        return restaurantMapper.toListRestaurantResponse(iRestaurantServicePort.getAllrestaurant(token));
+    public List<RestaurantResponse> getAllrestaurant() {
+        return restaurantMapper.toListRestaurantResponse(restaurantServicePort.getAllrestaurant());
     }
 
     @Override
-    public boolean existsRestaurant(Long idRestaurant, String token) {
-        return iRestaurantServicePort.existsRestaurant(idRestaurant, token);
+    public boolean existsRestaurant(Long findRestaurantId) {
+        return restaurantServicePort.existsRestaurant(findRestaurantId);
     }
 
     @Override
-    public boolean existsByNit(String nit) {
-        return iRestaurantServicePort.existsByNit(nit);
+    public boolean existsByNit(String findRestaurantNit) {
+        return restaurantServicePort.existsByNit(findRestaurantNit);
     }
 
     @Override
-    public RestaurantResponse findById(Long idRestaurant) {
-        return restaurantMapper.toRestaurantResponse(iRestaurantServicePort.findById(idRestaurant));
+    public RestaurantResponse findById(Long findRestaurantId) {
+        return restaurantMapper.toRestaurantResponse(restaurantServicePort.findById(findRestaurantId));
     }
 
     @Override
     public Page<RestaurantResponse> findAllByOrderByNameAsc(Pageable pageable) {
-        return iRestaurantServicePort.findAllByOrderByNameAsc(pageable)
+        return restaurantServicePort.findAllByOrderByNameAsc(pageable)
                 .map(restaurantMapper::toRestaurantResponse);
     }
 }

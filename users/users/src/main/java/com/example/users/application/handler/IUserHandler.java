@@ -7,15 +7,15 @@ import java.util.List;
 
 public interface IUserHandler {
 
-    UserResponse saveUser(UserRequest userRequest, String token);
+    UserResponse saveUser(UserRequest userRequest);
 
-    UserResponse findByEmailUser(String email, String token);
+    UserResponse findByEmailUser(String email);
 
-    UserResponse findByIdUser(Long id, String token);
+    UserResponse findByIdUser(Long id);
 
-    UserResponse updateUser(UserRequest user, String token);
+    UserResponse updateUser(UserRequest user);
 
-    void deleteUser(Long userId, String token);
+    void deleteUser(Long userId);
 
     List<UserResponse> getAllUser();
 }

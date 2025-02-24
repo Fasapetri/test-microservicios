@@ -1,6 +1,5 @@
 package com.example.pedidos.domain.model;
 
-import com.example.pedidos.model.EstadoPedido;
 import lombok.Data;
 
 import java.time.LocalDateTime;

@@ -8,15 +8,15 @@ import java.util.List;
 
 public interface IDishHandler {
 
-    DishResponse saveDish(DishRequest dishRequest, String token);
+    DishResponse saveDish(DishRequest dishRequest);
 
-    DishResponse updateDish(Long id_dish, DishRequest dishRequest, String token);
+    DishResponse updateDish(Long id_dish, DishRequest dishRequest);
 
-    DishResponse updateDishStatus(Long idDish, String token);
+    DishResponse updateDishStatus(Long idDish);
 
-    List<DishResponse> getAllDish(String token);
+    List<DishResponse> getAllDish();
 
-    List<DishResponse> getDishRestaurant(Long idRestaurant, String token);
+    List<DishResponse> getDishRestaurant(Long idRestaurant);
 
-    DishResponse findById(Long dishId, String token);
+    DishResponse findById(Long dishId);
 }

@@ -16,40 +16,40 @@ import java.util.List;
 @Transactional
 public class DishHandler implements IDishHandler{
 
-    private final IDishServicePort iDishServicePort;
+    private final IDishServicePort dishServicePort;
     private final DishMapper dishMapper;
 
     @Override
-    public DishResponse saveDish(DishRequest dishRequest, String token) {
-        Dish mapperDish = dishMapper.toDish(dishRequest);
-        iDishServicePort.saveDish(mapperDish, token);
+    public DishResponse saveDish(DishRequest dishToCreate) {
+        Dish mapperDish = dishMapper.toDish(dishToCreate);
+        dishServicePort.saveDish(mapperDish);
         return dishMapper.toDishResponse(mapperDish);
     }
 
     @Override
-    public DishResponse updateDish(Long id_dish, DishRequest dishRequest, String token) {
-        Dish dish = dishMapper.toDish(dishRequest);
-        iDishServicePort.updateDish(id_dish, dish, token);
-        return dishMapper.toDishResponse(dish);
+    public DishResponse updateDish(Long findDishId, DishRequest dishToUpdate) {
+        Dish mapperDish = dishMapper.toDish(dishToUpdate);
+        dishServicePort.updateDish(findDishId, mapperDish);
+        return dishMapper.toDishResponse(mapperDish);
     }
 
     @Override
-    public DishResponse updateDishStatus(Long idDish, String token) {
-        return dishMapper.toDishResponse(iDishServicePort.updateDishStatus(idDish, token));
+    public DishResponse updateDishStatus(Long findDishId) {
+        return dishMapper.toDishResponse(dishServicePort.updateDishStatus(findDishId));
     }
 
     @Override
-    public List<DishResponse> getAllDish(String token) {
-        return dishMapper.toListDishResponse(iDishServicePort.getAllDish(token));
+    public List<DishResponse> getAllDish() {
+        return dishMapper.toListDishResponse(dishServicePort.getAllDish());
     }
 
     @Override
-    public List<DishResponse> getDishRestaurant(Long idRestaurant, String token) {
-        return dishMapper.toListDishResponse(iDishServicePort.getDishRestaurant(idRestaurant, token));
+    public List<DishResponse> getDishRestaurant(Long findRestaurantId) {
+        return dishMapper.toListDishResponse(dishServicePort.getDishRestaurant(findRestaurantId));
     }
 
     @Override
-    public DishResponse findById(Long dishId, String token) {
-        return dishMapper.toDishResponse(iDishServicePort.findById(dishId, token));
+    public DishResponse findById(Long findDishId) {
+        return dishMapper.toDishResponse(dishServicePort.findById(findDishId));
     }
 }

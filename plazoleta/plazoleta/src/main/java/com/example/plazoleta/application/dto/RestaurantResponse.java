@@ -1,24 +1,28 @@
 package com.example.plazoleta.application.dto;
 
+import com.example.plazoleta.application.constants.RestaurantResponseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@Data
-@Schema(description = "Datos de respuesta de un restaurante")
-public class RestaurantResponse {
+import java.io.Serializable;
 
-    @Schema(description = "Nombre del restaurante", example = "La Casa de la Pasta")
+@Data
+@Schema(description = RestaurantResponseConstants.DESC_RESPONSE)
+public class RestaurantResponse implements Serializable {
+
+    @Schema(description = RestaurantResponseConstants.DESC_NAME, example = RestaurantResponseConstants.EXAMPLE_NAME)
     private String name;
 
-    @Schema(description = "Número de Identificación Tributaria (NIT)", example = "1234567890")
+    @Schema(description = RestaurantResponseConstants.DESC_NIT, example = RestaurantResponseConstants.EXAMPLE_NIT)
     private String nit;
 
-    @Schema(description = "Dirección del restaurante", example = "Calle 123 #45-67")
+    @Schema(description = RestaurantResponseConstants.DESC_ADDRESS, example = RestaurantResponseConstants.EXAMPLE_ADDRESS)
     private String address;
 
-    @Schema(description = "Número de teléfono", example = "+573001234567")
+    @Schema(description = RestaurantResponseConstants.DESC_PHONE, example = RestaurantResponseConstants.EXAMPLE_PHONE)
     private String phone;
 
-    @Schema(description = "URL del logo del restaurante", example = "https://example.com/logo.png")
+    @Schema(description = RestaurantResponseConstants.DESC_URL_LOGO, example = RestaurantResponseConstants.EXAMPLE_URL_LOGO)
     private String url_logo;
+
 }

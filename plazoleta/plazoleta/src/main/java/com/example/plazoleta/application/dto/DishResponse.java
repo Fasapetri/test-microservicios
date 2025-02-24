@@ -1,29 +1,33 @@
 package com.example.plazoleta.application.dto;
 
+import com.example.plazoleta.application.constants.DishResponseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-@Schema(description = "Datos de respuesta de un plato")
+@Schema(description = DishResponseConstants.DESC_DISH_RESPONSE)
 public class DishResponse implements Serializable {
 
-    @Schema(description = "Nombre del plato", example = "Spaghetti Bolognese")
+    @Schema(description = DishResponseConstants.DESC_ID, example = DishResponseConstants.EXAMPLE_ID)
+    private Long id;
+
+    @Schema(description = DishResponseConstants.DESC_NAME, example = DishResponseConstants.EXAMPLE_NAME)
     private String name;
 
-    @Schema(description = "Precio del plato", example = "20000")
+    @Schema(description = DishResponseConstants.DESC_PRICE, example = DishResponseConstants.EXAMPLE_PRICE)
     private Integer price;
 
-    @Schema(description = "Descripción del plato", example = "Pasta con salsa boloñesa y queso parmesano")
+    @Schema(description = DishResponseConstants.DESC_DESCRIPTION, example = DishResponseConstants.EXAMPLE_DESCRIPTION)
     private String description;
 
-    @Schema(description = "URL de la imagen del plato", example = "https://example.com/spaghetti.png")
+    @Schema(description = DishResponseConstants.DESC_IMAGE_URL, example = DishResponseConstants.EXAMPLE_IMAGE_URL)
     private String url_image;
 
-    @Schema(description = "Categoría del plato", example = "Italiana")
+    @Schema(description = DishResponseConstants.DESC_CATEGORY, example = DishResponseConstants.EXAMPLE_CATEGORY)
     private String category;
 
-    @Schema(description = "Estado del plato (activo o inactivo)", example = "true")
+    @Schema(description = DishResponseConstants.DESC_ACTIVE, example = DishResponseConstants.EXAMPLE_ACTIVE)
     private Boolean active;
 }

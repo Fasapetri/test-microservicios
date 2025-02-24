@@ -4,7 +4,6 @@ import com.example.plazoleta.domain.exception.RestaurantException;
 import com.example.plazoleta.domain.exception.RestaurantExceptionType;
 import com.example.plazoleta.domain.model.Restaurant;
 import com.example.plazoleta.domain.model.User;
-import com.example.plazoleta.domain.spi.IJwtServicePort;
 import com.example.plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.example.plazoleta.domain.spi.IUserClientPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +23,6 @@ class RestaurantUseCaseTest {
 
     @Mock
     private IRestaurantPersistencePort iRestaurantPersistencePort;
-
-    @Mock
-    private IJwtServicePort iJwtServicePort;
 
     @Mock
     private IUserClientPort iUserClientPort;
@@ -57,12 +53,11 @@ class RestaurantUseCaseTest {
 
     @Test
     void testSaveRestaurantSuccess(){
-        when(iJwtServicePort.validateToken(token)).thenReturn(testUserAdmin);
-        when(iUserClientPort.getUserById(testRestaurant.getId_proprietary(), token)).thenReturn(testUserPropietario);
+        when(iUserClientPort.getUserById(testRestaurant.getId_proprietary())).thenReturn(testUserPropietario);
         when(iRestaurantPersistencePort.existsByNit(testRestaurant.getNit())).thenReturn(false);
         when(iRestaurantPersistencePort.saveRestaurant(testRestaurant)).thenReturn(testRestaurant);
 
-        Restaurant savedRestaurant = restaurantUseCase.saveRestaurant(testRestaurant, token);
+        Restaurant savedRestaurant = restaurantUseCase.saveRestaurant(testRestaurant);
 
         assertNotNull(savedRestaurant);
         assertEquals("1234567890", savedRestaurant.getNit());
@@ -73,10 +68,9 @@ class RestaurantUseCaseTest {
     void testSaveRestaurantInvalidRolException(){
         User testUserClient = new User(3L, "test3@example.com", "CLIENTE");
 
-        when(iJwtServicePort.validateToken(token)).thenReturn(testUserClient);
 
         RestaurantException exception = assertThrows(RestaurantException.class, () -> {
-            restaurantUseCase.saveRestaurant(testRestaurant, token);
+            restaurantUseCase.saveRestaurant(testRestaurant);
         });
 
         assertEquals(RestaurantExceptionType.INVALID_ROL_CREATED_RESTAURANT, exception.getRestaurantType());
@@ -87,11 +81,10 @@ class RestaurantUseCaseTest {
     void testSaveRestaurantInvalidPropietarioException(){
         User testUserNotPropietario = new User(4L, "test4@example.com", "CLIENTE");
 
-        when(iJwtServicePort.validateToken(token)).thenReturn(testUserAdmin);
-        when(iUserClientPort.getUserById(testRestaurant.getId_proprietary(), token)).thenReturn(testUserNotPropietario);
+        when(iUserClientPort.getUserById(testRestaurant.getId_proprietary())).thenReturn(testUserNotPropietario);
 
         RestaurantException exception = assertThrows(RestaurantException.class, () ->{
-            restaurantUseCase.saveRestaurant(testRestaurant, token);
+            restaurantUseCase.saveRestaurant(testRestaurant);
         });
 
         assertEquals(RestaurantExceptionType.INVALID_ROL_PROPIETARIO, exception.getRestaurantType());
@@ -100,12 +93,11 @@ class RestaurantUseCaseTest {
 
     @Test
     void testSaveRestaurantInvalidNitExistsException(){
-        when(iJwtServicePort.validateToken(token)).thenReturn(testUserAdmin);
-        when(iUserClientPort.getUserById(testRestaurant.getId_proprietary(), token)).thenReturn(testUserPropietario);
+        when(iUserClientPort.getUserById(testRestaurant.getId_proprietary())).thenReturn(testUserPropietario);
         when(iRestaurantPersistencePort.existsByNit(testRestaurant.getNit())).thenReturn(true);
 
         RestaurantException exception =  assertThrows(RestaurantException.class, ()->{
-            restaurantUseCase.saveRestaurant(testRestaurant, token);
+            restaurantUseCase.saveRestaurant(testRestaurant);
         });
 
         assertEquals(RestaurantExceptionType.NIT_RESTAURANT_ALREADY_EXISTS, exception.getRestaurantType());
@@ -128,7 +120,7 @@ class RestaurantUseCaseTest {
 
         when(iRestaurantPersistencePort.getAllrestaurant()).thenReturn(listRestaurant);
 
-        List<Restaurant> result = restaurantUseCase.getAllrestaurant(token);
+        List<Restaurant> result = restaurantUseCase.getAllrestaurant();
 
         assertNotNull(result);
         assertFalse(result.isEmpty());

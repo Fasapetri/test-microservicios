@@ -8,11 +8,11 @@ import java.util.List;
 
 public interface IRestaurantServicePort {
 
-    Restaurant saveRestaurant(Restaurant restaurant, String token);
+    Restaurant saveRestaurant(Restaurant restaurant);
 
-    List<Restaurant> getAllrestaurant(String token);
+    List<Restaurant> getAllrestaurant();
 
-    boolean existsRestaurant(Long idRestaurant, String token);
+    boolean existsRestaurant(Long idRestaurant);
 
     boolean existsByNit(String nit);
 

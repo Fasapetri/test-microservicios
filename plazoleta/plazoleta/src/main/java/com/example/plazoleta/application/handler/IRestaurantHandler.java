@@ -10,11 +10,11 @@ import java.util.List;
 
 public interface IRestaurantHandler {
 
-    RestaurantResponse saveRestaurant(RestaurantRequest restaurantRequest, String token);
+    RestaurantResponse saveRestaurant(RestaurantRequest restaurantRequest);
 
-    List<RestaurantResponse> getAllrestaurant(String token);
+    List<RestaurantResponse> getAllrestaurant();
 
-    boolean existsRestaurant(Long idRestaurant, String token);
+    boolean existsRestaurant(Long idRestaurant);
 
     boolean existsByNit(String nit);
 

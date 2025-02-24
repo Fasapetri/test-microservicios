@@ -21,9 +21,6 @@ public class UserJpaAdapter implements IUserPersistencePort {
 
     @Override
     public User saveUser(User user) {
-        if(iUserRepository.findByEmail(user.getEmail()).isPresent()){
-            throw new UserEntityException(UserEntityExceptionType.USER_ALREADY_EXISTS);
-        }
         UserEntity savedUserEntity = iUserRepository.save(userEntityMapper.toUserEntity(user));
         return userEntityMapper.toUser(savedUserEntity);
     }
@@ -53,10 +50,6 @@ public class UserJpaAdapter implements IUserPersistencePort {
 
     @Override
     public List<User> getAllUser() {
-        List<UserEntity> listUser = iUserRepository.findAll();
-        if(listUser.isEmpty()){
-            throw new UserEntityException(UserEntityExceptionType.USER_NOT_DATA);
-        }
-        return userEntityMapper.toUserList(listUser);
+        return userEntityMapper.toUserList(iUserRepository.findAll());
     }
 }

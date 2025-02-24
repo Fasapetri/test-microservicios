@@ -10,7 +10,9 @@ public enum UserExceptionType {
     GENERAL_ERROR("Error general en la creación del usuario"),
     INVALID_ROL_ADMIN_CREATED_USER("Solo los usuarios con rol PROPIETARIO pueden crear usuarios EMPLEADOS."),
     INVALID_ROL_PROPIETARIO_CREATED_USER("Solo los usuarios con rol ADMIN pueden crear usuarios que no sean EMPLEADOS."),
-    USER_NOT_FOUND("No existe el usuario");
+    USER_NOT_FOUND("No existe el usuario"),
+    EMAIL_USER_EXISTS("Ya existe un usuario creado con ese email"),
+    USER_NOT_DATA("No existen datos de usuarios registrado");
 
     private final String message;
 

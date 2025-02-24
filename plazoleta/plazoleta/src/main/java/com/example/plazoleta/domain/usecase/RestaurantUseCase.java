@@ -1,81 +1,81 @@
 package com.example.plazoleta.domain.usecase;
 
-import com.example.plazoleta.domain.spi.IJwtServicePort;
 import com.example.plazoleta.domain.api.IRestaurantServicePort;
 import com.example.plazoleta.domain.exception.RestaurantException;
 import com.example.plazoleta.domain.exception.RestaurantExceptionType;
 import com.example.plazoleta.domain.model.Restaurant;
 import com.example.plazoleta.domain.model.User;
 import com.example.plazoleta.domain.spi.IRestaurantPersistencePort;
+import com.example.plazoleta.domain.spi.ISecurityContextPort;
 import com.example.plazoleta.domain.spi.IUserClientPort;
+import com.example.plazoleta.domain.validations.RestaurantUseCaseValidation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class RestaurantUseCase implements IRestaurantServicePort {
 
-    private final IRestaurantPersistencePort iRestaurantPersistencePort;
-    private final IJwtServicePort iJwtServicePort;
-    private final IUserClientPort iUserClientPort;
+    private final IRestaurantPersistencePort restaurantPersistencePort;
+    private final IUserClientPort userClientPort;
+    private final ISecurityContextPort securityContextPort;
+    private final RestaurantUseCaseValidation restaurantUseCaseValidation;
 
-    public RestaurantUseCase(IRestaurantPersistencePort iRestaurantPersistencePort, IJwtServicePort iJwtServicePort, IUserClientPort iUserClientPort) {
-        this.iRestaurantPersistencePort = iRestaurantPersistencePort;
-        this.iJwtServicePort = iJwtServicePort;
-        this.iUserClientPort = iUserClientPort;
+    public RestaurantUseCase(IRestaurantPersistencePort iRestaurantPersistencePort, IUserClientPort iUserClientPort, ISecurityContextPort iSecurityContextPort, RestaurantUseCaseValidation restaurantUseCaseValidation) {
+        this.restaurantPersistencePort = iRestaurantPersistencePort;
+        this.userClientPort = iUserClientPort;
+        this.securityContextPort = iSecurityContextPort;
+        this.restaurantUseCaseValidation = restaurantUseCaseValidation;
     }
 
     @Override
-    public Restaurant saveRestaurant(Restaurant restaurant, String token) {
-        User loginUser = iJwtServicePort.validateToken(token);
+    public Restaurant saveRestaurant(Restaurant restaurantToCreate) {
+        String userAuthenticatedRol = securityContextPort.getUserAuthenticateRol();
 
-        if (!"ADMIN".equalsIgnoreCase(loginUser.getRol())) {
-            throw new RestaurantException(RestaurantExceptionType.INVALID_ROL_CREATED_RESTAURANT);
-        }
+        User foundRestaurantPropietario = userClientPort.getUserById(restaurantToCreate.getId_proprietary());
 
-        User validateUserPropietario = iUserClientPort.getUserById(restaurant.getId_proprietary(), token);
-
-        if(validateUserPropietario == null || !"PROPIETARIO".equals(validateUserPropietario.getRol())){
-            throw new RestaurantException(RestaurantExceptionType.INVALID_ROL_PROPIETARIO);
-        }
-
-        if(iRestaurantPersistencePort.existsByNit(restaurant.getNit())){
+        if(restaurantPersistencePort.existsByNit(restaurantToCreate.getNit())){
             throw new RestaurantException(RestaurantExceptionType.NIT_RESTAURANT_ALREADY_EXISTS);
         }
 
-        if(Pattern.matches("^\\d+$", restaurant.getName())){
-            throw new RestaurantException(RestaurantExceptionType.INVALID_NAME_RESTAURANT);
+        restaurantUseCaseValidation.ValidationCreateRestaurant(userAuthenticatedRol, foundRestaurantPropietario, restaurantToCreate);
+        return restaurantPersistencePort.saveRestaurant(restaurantToCreate);
+    }
+
+    @Override
+    public List<Restaurant> getAllrestaurant() {
+        List<Restaurant> listAllRestaurant = restaurantPersistencePort.getAllrestaurant();
+        if(listAllRestaurant.isEmpty()){
+            throw new RestaurantException(RestaurantExceptionType.RESTAURANT_NOT_DATA);
         }
+        return listAllRestaurant;
+    }
 
-        if(!restaurant.getPhone().matches("^\\+?\\d{1,13}$")){
-            throw new RestaurantException(RestaurantExceptionType.INVALID_PHONE_RESTAURANT);
+    @Override
+    public boolean existsRestaurant(Long findRestaurantId) {
+        return restaurantPersistencePort.existsRestaurant(findRestaurantId);
+    }
+
+    @Override
+    public boolean existsByNit(String findRestaurantNit) {
+        return restaurantPersistencePort.existsByNit(findRestaurantNit);
+    }
+
+    @Override
+    public Restaurant findById(Long findRestaurantId) {
+        Restaurant foundRestaurant = restaurantPersistencePort.findById(findRestaurantId);
+        if(foundRestaurant == null){
+            throw new RestaurantException(RestaurantExceptionType.RESTAURANT_NOT_FOUND);
         }
-        return iRestaurantPersistencePort.saveRestaurant(restaurant);
-    }
-
-    @Override
-    public List<Restaurant> getAllrestaurant(String token) {
-        return iRestaurantPersistencePort.getAllrestaurant();
-    }
-
-    @Override
-    public boolean existsRestaurant(Long idRestaurant, String token) {
-        return iRestaurantPersistencePort.existsRestaurant(idRestaurant);
-    }
-
-    @Override
-    public boolean existsByNit(String nit) {
-        return iRestaurantPersistencePort.existsByNit(nit);
-    }
-
-    @Override
-    public Restaurant findById(Long idRestaurant) {
-        return iRestaurantPersistencePort.findById(idRestaurant);
+        return foundRestaurant;
     }
 
     @Override
     public Page<Restaurant> findAllByOrderByNameAsc(Pageable pageable) {
-        return iRestaurantPersistencePort.findAllByOrderByNameAsc(pageable);
+        Page<Restaurant> paginatorFindAllRestaurant = restaurantPersistencePort.findAllByOrderByNameAsc(pageable);
+        if(paginatorFindAllRestaurant.isEmpty()){
+            throw new RestaurantException(RestaurantExceptionType.RESTAURANT_NOT_DATA);
+        }
+        return paginatorFindAllRestaurant;
     }
 }

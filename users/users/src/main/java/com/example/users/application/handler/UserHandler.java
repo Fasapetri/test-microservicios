@@ -16,43 +16,43 @@ import java.util.List;
 @Transactional
 public class UserHandler implements IUserHandler{
 
-    private final IUserServicePort iUserServicePort;
+    private final IUserServicePort userServicePort;
     private final UserMapper userMapper;
 
     @Override
-    public UserResponse saveUser(UserRequest userRequest, String token) {
+    public UserResponse saveUser(UserRequest userRequest) {
         User user = userMapper.userRequestToUser(userRequest);
-        iUserServicePort.saveUser(user, token);
+        User savedUser = userServicePort.saveUser(user);
+        return userMapper.userToUserResponse(savedUser);
+    }
+
+    @Override
+    public UserResponse findByEmailUser(String email) {
+        User user = userServicePort.findByEmailUser(email);
         return userMapper.userToUserResponse(user);
     }
 
     @Override
-    public UserResponse findByEmailUser(String email, String token) {
-        User user = iUserServicePort.findByEmailUser(email, token);
+    public UserResponse findByIdUser(Long id) {
+        User user = userServicePort.findByIdUser(id);
         return userMapper.userToUserResponse(user);
     }
 
     @Override
-    public UserResponse findByIdUser(Long id, String token) {
-        User user = iUserServicePort.findByIdUser(id, token);
-        return userMapper.userToUserResponse(user);
-    }
-
-    @Override
-    public UserResponse updateUser(UserRequest userRequest, String token) {
+    public UserResponse updateUser(UserRequest userRequest) {
         User newUser = userMapper.userRequestToUser(userRequest);
-        iUserServicePort.updateUser(newUser, token);
+        userServicePort.updateUser(newUser);
         return userMapper.userToUserResponse(newUser);
     }
 
     @Override
-    public void deleteUser(Long userId, String token) {
-        iUserServicePort.deleteUser(userId, token);
+    public void deleteUser(Long userId) {
+        userServicePort.deleteUser(userId);
     }
 
     @Override
     public List<UserResponse> getAllUser() {
-        List<User> listUser = iUserServicePort.getAllUser();
+        List<User> listUser = userServicePort.getAllUser();
         return userMapper.listUserToUserResponse(listUser);
     }
 }

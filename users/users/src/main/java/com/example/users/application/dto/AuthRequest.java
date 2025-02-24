@@ -1,15 +1,16 @@
 package com.example.users.application.dto;
 
+import com.example.users.application.constants.AuthRequestConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@Schema(description = "Datos requeridos para iniciar sesión")
+@Schema(description = AuthRequestConstants.AUTH_REQUEST_DESCRIPTION)
 public class AuthRequest {
 
-    @Schema(description = "Correo electrónico del usuario", example = "usuario@example.com", required = true)
+    @Schema(description = AuthRequestConstants.EMAIL_DESCRIPTION, example = AuthRequestConstants.EMAIL_EXAMPLE, required = true)
     private String email;
 
-    @Schema(description = "Contraseña del usuario", example = "password123", required = true)
+    @Schema(description = AuthRequestConstants.PASSWORD_DESCRIPTION, example = AuthRequestConstants.PASSWORD_EXAMPLE, required = true)
     private String password;
 }

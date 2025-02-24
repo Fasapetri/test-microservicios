@@ -1,20 +1,23 @@
 package com.example.plazoleta.application.dto;
 
+import com.example.plazoleta.application.constants.TokenValidationResponseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
-@Data
-@Builder
-@Schema(description = "Respuesta con la información del token validado")
-public class TokenValidationResponse {
+import java.io.Serializable;
 
-    @Schema(description = "ID del usuario asociado al token", example = "1")
+@Data
+@Schema(description = TokenValidationResponseConstants.DESC_RESPONSE)
+public class TokenValidationResponse implements Serializable {
+
+    @Schema(description = TokenValidationResponseConstants.DESC_USER_ID, example = TokenValidationResponseConstants.EXAMPLE_USER_ID)
     private Long userId;
 
-    @Schema(description = "Correo electrónico del usuario", example = "usuario@example.com")
+    @Schema(description = TokenValidationResponseConstants.DESC_EMAIL, example = TokenValidationResponseConstants.EXAMPLE_EMAIL)
     private String email;
 
-    @Schema(description = "Rol del usuario en la plataforma", example = "ADMIN")
+    @Schema(description = TokenValidationResponseConstants.DESC_ROLE, example = TokenValidationResponseConstants.EXAMPLE_ROLE)
     private String role;
+
 }

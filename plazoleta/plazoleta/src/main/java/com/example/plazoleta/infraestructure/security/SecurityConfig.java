@@ -21,7 +21,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/restaurant/findRestaurant/{id}").hasAuthority("ROLE_ADMIN")
+//                        .requestMatchers("/api/restaurant/findRestaurant/{id}").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/restaurant/**").authenticated()
                         .requestMatchers("/api/dishes/**").authenticated()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()

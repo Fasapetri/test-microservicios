@@ -5,7 +5,9 @@ public enum RestaurantExceptionType {
     INVALID_ROL_PROPIETARIO("El ID del propietario no es valido o no tiene el rol de propietario"),
     NIT_RESTAURANT_ALREADY_EXISTS("El NIT ya está registrado"),
     INVALID_NAME_RESTAURANT("El nombre no puede contener solo números"),
-    INVALID_PHONE_RESTAURANT("El telefono debe contener un maximo de 13 numeros incluido el +");
+    INVALID_PHONE_RESTAURANT("El telefono debe contener un maximo de 13 numeros incluido el +"),
+    RESTAURANT_NOT_DATA("No existen datos de restaurantes registrado"),
+    RESTAURANT_NOT_FOUND("El restaurante no existe");
 
 
     private final String message;

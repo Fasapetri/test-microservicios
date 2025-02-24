@@ -1,38 +1,39 @@
 package com.example.users.application.dto;
 
+import com.example.users.application.constants.UserRequestConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
-@Schema(description = "Objeto que representa los datos para crear o modificar un usuario")
+@Schema(description = UserRequestConstants.USER_REQUEST_DESCRIPTION)
 public class UserRequest {
 
-    @Schema(description = "ID del usuario", example = "1", required =  true)
+    @Schema(description = UserRequestConstants.ID_DESCRIPTION, example = UserRequestConstants.ID_EXAMPLE, required = true)
     private Long id;
 
-    @Schema(description = "correo del usuario", example = "test@example.com", required =  true)
+    @Schema(description = UserRequestConstants.EMAIL_DESCRIPTION, example = UserRequestConstants.EMAIL_EXAMPLE, required = true)
     private String email;
 
-    @Schema(description = "ROL que manejará el usuario en la plataforma", examples = {"ADMIN", "PROPIETARIO", "CLIENTE", "EMPLEADO"}, required =  true)
+    @Schema(description = UserRequestConstants.ROLE_DESCRIPTION, example = UserRequestConstants.ROLE_EXAMPLES, required = true)
     private String rol;
 
-    @Schema(description = "Contraseña del usuario para su ingreso a la plataforma", example = "xxxxx", required =  true)
+    @Schema(description = UserRequestConstants.PASSWORD_DESCRIPTION, example = UserRequestConstants.PASSWORD_EXAMPLE, required = true)
     private String password;
 
-    @Schema(description = "nombre del usuario", example = "Juan", required =  true)
+    @Schema(description = UserRequestConstants.NAME_DESCRIPTION, example = UserRequestConstants.NAME_EXAMPLE, required = true)
     private String name;
 
-    @Schema(description = "apellido del usuario", example = "Perez")
+    @Schema(description = UserRequestConstants.LAST_NAME_DESCRIPTION, example = UserRequestConstants.LAST_NAME_EXAMPLE)
     private String last_name;
 
-    @Schema(description = "documento de identidad del usuario", example = "123456789", required =  true)
+    @Schema(description = UserRequestConstants.DOCUMENT_NUMBER_DESCRIPTION, example = UserRequestConstants.DOCUMENT_NUMBER_EXAMPLE, required = true)
     private String document_number;
 
-    @Schema(description = "numero del celular del usuario", example = "+57123456789", required =  true)
+    @Schema(description = UserRequestConstants.PHONE_DESCRIPTION, example = UserRequestConstants.PHONE_EXAMPLE, required = true)
     private String phone;
 
-    @Schema(description = "fecha de nacimiento del usuario", example = "1996-05-05")
+    @Schema(description = UserRequestConstants.DATE_BIRTH_DESCRIPTION, example = UserRequestConstants.DATE_BIRTH_EXAMPLE)
     private LocalDate date_birth;
 }

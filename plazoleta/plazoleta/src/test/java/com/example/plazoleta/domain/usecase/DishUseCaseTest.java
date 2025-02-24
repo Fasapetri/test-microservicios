@@ -6,9 +6,7 @@ import com.example.plazoleta.domain.model.Dish;
 import com.example.plazoleta.domain.model.Restaurant;
 import com.example.plazoleta.domain.model.User;
 import com.example.plazoleta.domain.spi.IDishPersistencePort;
-import com.example.plazoleta.domain.spi.IJwtServicePort;
 import com.example.plazoleta.domain.spi.IRestaurantPersistencePort;
-import com.example.plazoleta.infraestructure.output.jpa.exception.DishEntityExceptionType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,9 +25,6 @@ class DishUseCaseTest {
 
     @Mock
     private IDishPersistencePort iDishPersistencePort;
-
-    @Mock
-    private IJwtServicePort iJwtServicePort;
 
     @Mock
     private IRestaurantPersistencePort iRestaurantPersistencePort;
@@ -62,16 +57,14 @@ class DishUseCaseTest {
 
     @Test
     void testSaveDishSuccess(){
-        when(iJwtServicePort.validateToken(token)).thenReturn(testPropietario);
         when(iRestaurantPersistencePort.findById(testRestaurant.getId())).thenReturn(testRestaurant);
         when(iDishPersistencePort.saveDish(testDish)).thenReturn(testDish);
 
-        Dish dish = dishUseCase.saveDish(testDish, token);
+        Dish dish = dishUseCase.saveDish(testDish);
 
         assertThat(dish).isNotNull();
         assertNotNull(dish);
         assertEquals(dish.getRestaurant(), testRestaurant);
-        verify(iJwtServicePort, times(1)).validateToken(token);
         verify(iRestaurantPersistencePort, times(1)).findById(testRestaurant.getId());
         verify(iDishPersistencePort, times(1)).saveDish(testDish);
     }
@@ -80,10 +73,9 @@ class DishUseCaseTest {
     void testSaveDishInvalidRoleException(){
        User testClient = new User(2L, "client@example.com", "CLIENTE");
 
-       when(iJwtServicePort.validateToken(token)).thenReturn(testClient);
 
         DishException exception = assertThrows(DishException.class, () ->{
-            dishUseCase.saveDish(testDish, token);
+            dishUseCase.saveDish(testDish);
         });
 
         assertEquals(DishExceptionType.INVALID_ROL_CREATED_DISH, exception.getDishType());
@@ -92,11 +84,10 @@ class DishUseCaseTest {
 
     @Test
     void testSaveDishNotExistsRestaurantException(){
-        when(iJwtServicePort.validateToken(token)).thenReturn(testPropietario);
         when(iRestaurantPersistencePort.findById(testRestaurant.getId())).thenReturn(null);
 
         DishException exception = assertThrows(DishException.class, ()->{
-            dishUseCase.saveDish(testDish, token);
+            dishUseCase.saveDish(testDish);
         });
 
         assertEquals(DishExceptionType.NOT_EXISTS_RESTAURANT, exception.getDishType());
@@ -113,11 +104,10 @@ class DishUseCaseTest {
 
         Long id_dish = 1L;
 
-        when(iJwtServicePort.validateToken(token)).thenReturn(testPropietario);
         when(iDishPersistencePort.findById(testDish.getId())).thenReturn(testDish);
         when(iDishPersistencePort.updateDish(any(Dish.class))).thenReturn(testUpdatedish);
 
-        Dish dish = dishUseCase.updateDish(id_dish, testUpdatedish, token);
+        Dish dish = dishUseCase.updateDish(id_dish, testUpdatedish);
 
         assertNotNull(dish);
         assertEquals(dish.getPrice(), 150);
@@ -131,10 +121,9 @@ class DishUseCaseTest {
         Long id_dish = 1L;
         User testEmpleado = new User(3L, "empleado@example.com", "EMPLEADO");
 
-        when(iJwtServicePort.validateToken(token)).thenReturn(testEmpleado);
 
         DishException exception = assertThrows(DishException.class, ()->{
-            dishUseCase.updateDish(id_dish, testDish, token);
+            dishUseCase.updateDish(id_dish, testDish);
         });
 
         assertEquals(DishExceptionType.INVALID_ROL_UPDATE_DISH, exception.getDishType());
@@ -144,11 +133,10 @@ class DishUseCaseTest {
     @Test
     void testUpdateDishNotExistsDishException(){
         Long id_dish = 1L;
-        when(iJwtServicePort.validateToken(token)).thenReturn(testPropietario);
         when(iDishPersistencePort.findById(id_dish)).thenReturn(null);
 
         DishException exception = assertThrows(DishException.class, ()->{
-            dishUseCase.updateDish(id_dish, testDish, token);
+            dishUseCase.updateDish(id_dish, testDish);
         });
 
         assertEquals(DishExceptionType.NOT_EXISTS_DISH, exception.getDishType());
@@ -159,7 +147,7 @@ class DishUseCaseTest {
     void testGetAllDishSuccess(){
         when(iDishPersistencePort.getAllDish()).thenReturn(List.of(testDish));
 
-        List<Dish> listDish = dishUseCase.getAllDish(token);
+        List<Dish> listDish = dishUseCase.getAllDish();
 
         assertNotNull(listDish);
         assertEquals(listDish.size(), 1);
@@ -168,11 +156,10 @@ class DishUseCaseTest {
 
     @Test
     void testUpdateStatusDishSuccess(){
-        when(iJwtServicePort.validateToken(token)).thenReturn(testPropietario);
         when(iDishPersistencePort.findById(testDish.getId())).thenReturn(testDish);
         when(iDishPersistencePort.updateDishStatus(testDish.getId())).thenReturn(testDish);
 
-        Dish updateDish = dishUseCase.updateDishStatus(testDish.getId(), token);
+        Dish updateDish = dishUseCase.updateDishStatus(testDish.getId());
 
         assertNotNull(updateDish);
         assertThat(updateDish.getActive()).isFalse();
@@ -181,11 +168,10 @@ class DishUseCaseTest {
 
     @Test
     void testUpdateStatusDishNotExistsDishException(){
-        when(iJwtServicePort.validateToken(token)).thenReturn(testPropietario);
         when(iDishPersistencePort.findById(testDish.getId())).thenReturn(null);
 
         DishException exception = assertThrows(DishException.class, ()->{
-            dishUseCase.updateDishStatus(testDish.getId(), token);
+            dishUseCase.updateDishStatus(testDish.getId());
         });
 
         assertEquals(DishExceptionType.NOT_EXISTS_DISH, exception.getDishType());

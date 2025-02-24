@@ -8,6 +8,8 @@ import com.example.users.domain.model.User;
 import com.example.users.domain.spi.ITokenBlackListServicePort;
 import com.example.users.domain.spi.IUserPersistencePort;
 
+import static com.example.users.domain.constants.AuthConstants.*;
+
 public class AuthUseCase implements IAuthServicePort {
 
     private final IUserPersistencePort iUserPersistencePort;
@@ -27,7 +29,7 @@ public class AuthUseCase implements IAuthServicePort {
         User user = iUserPersistencePort.findByEmailUser(email);
 
         if(user == null || !iPasswordEncodePort.matches(password, user.getPassword())){
-            throw  new IllegalArgumentException("Credenciales inválidas");
+            throw  new IllegalArgumentException(INVALID_CREDENTIALS_MESSAGE);
         }
 
         return iJwtServicePort.generarToken(user.getEmail(), user.getRol(), user.getId());
@@ -45,8 +47,8 @@ public class AuthUseCase implements IAuthServicePort {
 
     @Override
     public String extractToken(String authorizationHeader) {
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7);
+        if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX)) {
+            return authorizationHeader.substring(BEARER_PREFIX_LENGTH);
         }
         return null;
     }

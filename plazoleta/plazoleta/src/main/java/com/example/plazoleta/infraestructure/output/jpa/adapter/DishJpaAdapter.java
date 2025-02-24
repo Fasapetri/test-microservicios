@@ -20,48 +20,41 @@ public class DishJpaAdapter implements IDishPersistencePort {
     private final DishEntityMapper dishEntityMapper;
 
     @Override
-    public Dish saveDish(Dish dish) {
-        DishEntity dishEntity = iDishRepository.save(dishEntityMapper.toDishEntity(dish));
+    public Dish saveDish(Dish dishToCreate) {
+        DishEntity dishEntity = iDishRepository.save(dishEntityMapper.toDishEntity(dishToCreate));
         return dishEntityMapper.toDish(dishEntity);
     }
 
     @Override
-    public Dish updateDish(Dish dish) {
-        DishEntity dishEntity = iDishRepository.save(dishEntityMapper.toDishEntity(dish));
-        return dishEntityMapper.toDish(dishEntity);
+    public Dish updateDish(Dish dishToUpdate) {
+        DishEntity mapperDishEntity = iDishRepository.save(dishEntityMapper.toDishEntity(dishToUpdate));
+        return dishEntityMapper.toDish(mapperDishEntity);
     }
 
     @Override
-    public Dish updateDishStatus(Long idDish) {
-        DishEntity dish = iDishRepository.findById(idDish)
-                .orElseThrow(() -> new DishEntityException(DishEntityExceptionType.DISH_NOT_FOUND));
-
-        DishEntity dishEntity = iDishRepository.save(dish);
-        return dishEntityMapper.toDish(dishEntity);
+    public Dish updateDishStatus(Long findDishId) {
+        Dish foundDish = this.findById(findDishId);
+        DishEntity mapperDishEntity = iDishRepository.save(dishEntityMapper.toDishEntity(foundDish));
+        return dishEntityMapper.toDish(mapperDishEntity);
     }
 
     @Override
     public List<Dish> getAllDish() {
-        List<DishEntity> listEntities= iDishRepository.findAll();
-        if(listEntities.isEmpty()){
-            throw new DishEntityException(DishEntityExceptionType.DISH_NOT_DATA);
-        }
-        return dishEntityMapper.toListDish(listEntities);
+        return dishEntityMapper.toListDish(iDishRepository.findAll());
     }
 
     @Override
-    public List<Dish> getDishRestaurant(Long idRestaurant) {
-        List<DishEntity> listEntities = iDishRepository.findAllByRestaurantId(idRestaurant);
+    public List<Dish> getDishRestaurant(Long findRestaurantId) {
+        List<DishEntity> listDishEntity = iDishRepository.findAllByRestaurantId(findRestaurantId);
 
-        if(listEntities.isEmpty()){
+        if(listDishEntity.isEmpty()){
             throw new DishEntityException(DishEntityExceptionType.DISH_NOT_DATA);
         }
-        return dishEntityMapper.toListDish(listEntities);
+        return dishEntityMapper.toListDish(listDishEntity);
     }
 
     @Override
     public Dish findById(Long dishId) {
-        return dishEntityMapper.toDish(iDishRepository.findById(dishId)
-                .orElseThrow(() -> new DishEntityException(DishEntityExceptionType.DISH_NOT_FOUND)));
+        return iDishRepository.findById(dishId).map(dishEntityMapper::toDish).orElse(null);
     }
 }

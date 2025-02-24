@@ -5,7 +5,8 @@ public enum DishExceptionType {
     NOT_EXISTS_RESTAURANT("El restaurante no existe"),
     RESTAURANT_DOES_NOT_BELONG("El restaurante no pertenece al propietario autenticado."),
     INVALID_ROL_UPDATE_DISH("Solo los usuarios con rol PROPIETARIO pueden actualizar platos."),
-    NOT_EXISTS_DISH("El plato no existe");
+    NOT_EXISTS_DISH("El plato no existe"),
+    DISH_NOT_DATA("No existen datos de platos registrados.");
 
     private final String message;
 

@@ -6,15 +6,15 @@ import java.util.List;
 
 public interface IDishServicePort {
 
-    Dish saveDish(Dish dish, String token);
+    Dish saveDish(Dish dish);
 
-    Dish updateDish(Long id_dish, Dish dish, String token);
+    Dish updateDish(Long id_dish, Dish dish);
 
-    Dish updateDishStatus(Long idDish, String token);
+    Dish updateDishStatus(Long idDish);
 
-    List<Dish> getAllDish(String token);
+    List<Dish> getAllDish();
 
-    List<Dish> getDishRestaurant(Long idRestaurant, String token);
+    List<Dish> getDishRestaurant(Long idRestaurant);
 
-    Dish findById(Long dishId, String token);
+    Dish findById(Long dishId);
 }

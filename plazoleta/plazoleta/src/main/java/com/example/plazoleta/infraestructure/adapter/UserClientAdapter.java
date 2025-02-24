@@ -14,9 +14,9 @@ public class UserClientAdapter implements IUserClientPort {
     private final UserFeignClient userFeignClient;
 
     @Override
-    public User getUserById(Long userId, String token) {
-        UserResponse userReponse =  userFeignClient.findById(userId, token);
-        return new User(userReponse.getId(), userReponse.getEmail(), userReponse.getRol());
+    public User getUserById(Long findUserId) {
+        UserResponse foundUser =  userFeignClient.findById(findUserId);
+        return new User(foundUser.getId(), foundUser.getEmail(), foundUser.getRol());
 
     }
 }

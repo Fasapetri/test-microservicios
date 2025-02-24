@@ -37,6 +37,6 @@ public class JwtServiceAdapter implements IJwtServicePort {
     }
 
     private String cleanToken(String token){
-        return token.replace("Bearer", "");
+        return token.replace("Bearer ", "");
     }
 }

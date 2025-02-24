@@ -4,11 +4,18 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
@@ -88,5 +95,20 @@ public class JwtUtil {
         Date expirationDate = getExpirationDate(token);
         long currentTime = System.currentTimeMillis();
         return expirationDate.getTime() - currentTime;
+    }
+
+    public Authentication getAuthentication(String token) {
+        Claims claims = extractClaims(token);
+        String email = claims.getSubject();
+        String role = claims.get("role", String.class);
+        Long userId = claims.get("userId", Long.class);
+
+        List<SimpleGrantedAuthority> authorities = role != null
+                ? Collections.singletonList(new SimpleGrantedAuthority(role))
+                : Collections.emptyList();
+
+        CustomUserDetails user = new CustomUserDetails(email, "", authorities, userId);
+
+        return new UsernamePasswordAuthenticationToken(user, token, authorities);
     }
 }

@@ -6,59 +6,70 @@ import com.example.users.domain.api.IUserServicePort;
 import com.example.users.domain.exception.UserException;
 import com.example.users.domain.exception.UserExceptionType;
 import com.example.users.domain.model.User;
+import com.example.users.domain.spi.ISecurityContextPort;
 import com.example.users.domain.spi.IUserPersistencePort;
+import com.example.users.domain.validations.UserCaseUseValidation;
+import com.example.users.infraestructure.exception.UserEntityException;
+import com.example.users.infraestructure.exception.UserEntityExceptionType;
+import com.example.users.infraestructure.output.jpa.entity.UserEntity;
 
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.example.users.domain.constants.UserConstants.*;
+
 public class UserUseCase implements IUserServicePort {
 
     private final IUserPersistencePort iUserPersistencePort;
-    private final IJwtServicePort iJwtServicePort;
     private final IPasswordEncodePort iPasswordEncodePort;
+    private final ISecurityContextPort iSecurityContextPort;
+    private final UserCaseUseValidation userCaseUseValidation;
 
-    public UserUseCase(IUserPersistencePort iUserPersistencePort, IJwtServicePort iJwtServicePort, IPasswordEncodePort iPasswordEncodePort) {
+    public UserUseCase(IUserPersistencePort iUserPersistencePort, IPasswordEncodePort iPasswordEncodePort, ISecurityContextPort iSecurityContextPort, UserCaseUseValidation userCaseUseValidation) {
         this.iUserPersistencePort = iUserPersistencePort;
-        this.iJwtServicePort = iJwtServicePort;
         this.iPasswordEncodePort = iPasswordEncodePort;
+        this.iSecurityContextPort = iSecurityContextPort;
+        this.userCaseUseValidation = userCaseUseValidation;
     }
 
     @Override
-    public User saveUser(User user, String token) {
-        String rol = iJwtServicePort.extractRoleFromToken(token);
-        validateUser(user);
-        validateUserRol(user, rol);
-        user.setPassword(iPasswordEncodePort.encode(user.getPassword()));
-        return iUserPersistencePort.saveUser(user);
+    public User saveUser(User userToCreate) {
+        String userAuthenticatedRol = iSecurityContextPort.getUserAuthenticateRol();
+        if(findByEmailUser(userToCreate.getEmail()) != null){
+            throw new UserException(UserExceptionType.EMAIL_USER_EXISTS);
+        }
+        userCaseUseValidation.validateUserData(userToCreate);
+        userCaseUseValidation.validateUserAuthenticatedRolPermissionUser(userToCreate, userAuthenticatedRol);
+        userToCreate.setPassword(iPasswordEncodePort.encode(userToCreate.getPassword()));
+        return iUserPersistencePort.saveUser(userToCreate);
     }
 
     @Override
-    public User findByEmailUser(String email, String token) {
+    public User findByEmailUser(String email) {
         return iUserPersistencePort.findByEmailUser(email);
     }
 
     @Override
-    public User findByIdUser(Long id, String token) {
+    public User findByIdUser(Long id) {
         return iUserPersistencePort.findByIdUser(id);
     }
 
     @Override
-    public User updateUser(User user, String token) {
-        String rol = iJwtServicePort.extractRoleFromToken(token);
-        User oldUser = findByIdUser(user.getId(), rol);
+    public User updateUser(User userToUpdate) {
+        String userAuthenticatedRol =  iSecurityContextPort.getUserAuthenticateRol();
+        User oldUser = findByIdUser(userToUpdate.getId());
         if(oldUser == null){
             throw new UserException(UserExceptionType.USER_NOT_FOUND);
         }
-        validateUser(user);
-        validateUserRol(user, rol);
-        user.setId(oldUser.getId());
-        return iUserPersistencePort.updateUser(user);
+        userCaseUseValidation.validateUserData(userToUpdate);
+        userCaseUseValidation.validateUserAuthenticatedRolPermissionUser(userToUpdate, userAuthenticatedRol);
+        userToUpdate.setId(oldUser.getId());
+        return iUserPersistencePort.updateUser(userToUpdate);
     }
 
     @Override
-    public void deleteUser(Long userId, String token) {
-        String rol = iJwtServicePort.extractRoleFromToken(token);
-        User user = findByIdUser(userId, rol);
+    public void deleteUser(Long userId) {
+        User user = findByIdUser(userId);
         if(user == null){
             throw new UserException(UserExceptionType.USER_NOT_FOUND);
         }
@@ -67,47 +78,12 @@ public class UserUseCase implements IUserServicePort {
 
     @Override
     public List<User> getAllUser() {
-        return iUserPersistencePort.getAllUser();
+        List<User> listUser = iUserPersistencePort.getAllUser();
+        if(listUser.isEmpty()){
+            throw new UserException(UserExceptionType.USER_NOT_DATA);
+        }
+        return listUser;
     }
 
-    private void validateUser(User user){
-        if (user.getDate_birth() == null || !isAdult(user.getDate_birth())){
-            throw new UserException(UserExceptionType.INVALID_AGE);
-        }
-
-        if (!user.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")){
-            throw new UserException(UserExceptionType.INVALID_EMAIL);
-        }
-
-        if (!user.getDocument_number().matches("\\d+")){
-            throw new UserException(UserExceptionType.INVALID_DOCUMENT);
-        }
-
-        if (!user.getPhone().matches("^\\+?\\d{1,13}$")){
-            throw new UserException(UserExceptionType.INVALID_PHONE);
-        }
-    }
-
-    private boolean isAdult(LocalDate date_birth){
-        return LocalDate.now().minusYears(18).isAfter(date_birth);
-    }
-
-    private void validateUserRol(User user, String rol){
-        if ("ADMIN".equalsIgnoreCase(rol)) {
-            if (!"PROPIETARIO".equalsIgnoreCase(user.getRol()) && !"CLIENTE".equalsIgnoreCase(user.getRol())) {
-                throw new UserException(UserExceptionType.INVALID_ROL_ADMIN_CREATED_USER);
-            }
-        } else if ("PROPIETARIO".equalsIgnoreCase(rol)) {
-            if (!"EMPLEADO".equalsIgnoreCase(user.getRol()) && !"CLIENTE".equalsIgnoreCase(user.getRol())) {
-                throw new UserException(UserExceptionType.INVALID_ROL_PROPIETARIO_CREATED_USER);
-            }
-        } else if ("EMPLEADO".equalsIgnoreCase(rol)) {
-            if (!"CLIENTE".equalsIgnoreCase(user.getRol())) {
-                throw new UserException(UserExceptionType.ROLE_NOT_ALLOWED);
-            }
-        } else {
-            throw new UserException(UserExceptionType.ROLE_NOT_ALLOWED);
-        }
-    }
     }
 

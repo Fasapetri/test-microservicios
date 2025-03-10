@@ -44,15 +44,6 @@ public class TrazabilidadUseCase implements ITrazabilidadServicePort {
                 });
     }
 
-    @Override
-    public Mono<TrazabilidadPedido> saveTrazabilidad(TrazabilidadPedido trazabilidadPedidoToCreate) {
-        return trazabilidadPersistencePort.saveTrazabilidad(trazabilidadPedidoToCreate);
-    }
-
-    @Override
-    public Flux<TrazabilidadPedido> findByPedidoId(String findPedidoId) {
-        return trazabilidadPersistencePort.findByPedidoId(findPedidoId);
-    }
 
 
 }

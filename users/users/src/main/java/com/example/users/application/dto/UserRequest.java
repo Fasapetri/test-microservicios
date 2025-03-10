@@ -16,9 +16,6 @@ public class UserRequest {
     @Schema(description = UserRequestConstants.EMAIL_DESCRIPTION, example = UserRequestConstants.EMAIL_EXAMPLE, required = true)
     private String email;
 
-    @Schema(description = UserRequestConstants.ROLE_DESCRIPTION, example = UserRequestConstants.ROLE_EXAMPLES, required = true)
-    private String rol;
-
     @Schema(description = UserRequestConstants.PASSWORD_DESCRIPTION, example = UserRequestConstants.PASSWORD_EXAMPLE, required = true)
     private String password;
 

@@ -1,6 +1,7 @@
 package com.example.pedidos.infraestructure.adapter;
 
 import com.example.pedidos.domain.spi.ISmsServicePort;
+import com.example.pedidos.infraestructure.constants.SecurityContextAdapterConstants;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
@@ -11,13 +12,13 @@ import reactor.core.publisher.Mono;
 @Service
 public class SmsAdapter implements ISmsServicePort {
 
-    @Value("${twilio.account.sid}")
+    @Value(SecurityContextAdapterConstants.VALUE_ACCOUNT_SID_TWILIO)
     private String accountSid;
 
-    @Value("${twilio.auth.token}")
+    @Value(SecurityContextAdapterConstants.VALUE_OUTH_TOKEN_TWILIO)
     private String outhToken;
 
-    @Value("${twilio.phone.number}")
+    @Value(SecurityContextAdapterConstants.VALUE_NUMBER_TWILIO)
     private String twilioPhoneNumber;
 
     @Override

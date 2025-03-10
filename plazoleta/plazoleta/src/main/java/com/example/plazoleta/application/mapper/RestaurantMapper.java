@@ -22,7 +22,5 @@ public interface RestaurantMapper {
 
     RestaurantResponse toRestaurantResponse(Restaurant restaurant);
 
-    List<Restaurant> toListRestaurant(List<RestaurantRequest> restaurantRequestList);
-
     List<RestaurantResponse> toListRestaurantResponse(List<Restaurant> restaurantList);
 }

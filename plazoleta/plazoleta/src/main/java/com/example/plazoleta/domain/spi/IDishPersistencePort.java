@@ -15,6 +15,8 @@ public interface IDishPersistencePort {
 
     List<Dish> getAllDish();
 
+    List<Dish> getDishRestaurantCategory(Long idRestaurant, String dishCategory);
+
     List<Dish> getDishRestaurant(Long idRestaurant);
 
     Dish findById(Long dishId);

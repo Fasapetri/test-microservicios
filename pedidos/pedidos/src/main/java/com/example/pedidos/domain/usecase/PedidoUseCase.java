@@ -9,12 +9,13 @@ import com.example.pedidos.domain.model.EstadoPedido;
 import com.example.pedidos.domain.model.Pedido;
 import com.example.pedidos.domain.model.TrazabilidadPedido;
 import com.example.pedidos.domain.spi.*;
+import com.example.pedidos.domain.validations.PedidoUseCaseValidation;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class PedidoUseCase implements IPedidoServicePort {
 
@@ -24,17 +25,19 @@ public class PedidoUseCase implements IPedidoServicePort {
     private final IUserClientServicePort userClientServicePort;
     private final ISmsServicePort smsServicePort;
     private final ISecurityContextPort securityContextPort;
+    private final PedidoUseCaseValidation pedidoUseCaseValidation;
 
     public PedidoUseCase(IPedidoPersistencePort iPedidoPersistencePort,
                          ITrazabilidadPersistencePort iTrazabilidadPersistencePort,
                          IRestaurantServicePort iRestaurantServicePort, IUserClientServicePort iClientServicePort,
-                         ISmsServicePort iSmsServicePort, ISecurityContextPort securityContextPort) {
+                         ISmsServicePort iSmsServicePort, ISecurityContextPort securityContextPort, PedidoUseCaseValidation pedidoUseCaseValidation) {
         this.pedidoPersistencePort = iPedidoPersistencePort;
         this.trazabilidadPersistencePort = iTrazabilidadPersistencePort;
         this.restaurantServicePort = iRestaurantServicePort;
         this.userClientServicePort = iClientServicePort;
         this.smsServicePort = iSmsServicePort;
         this.securityContextPort = securityContextPort;
+        this.pedidoUseCaseValidation = pedidoUseCaseValidation;
     }
 
     @Override
@@ -42,73 +45,63 @@ public class PedidoUseCase implements IPedidoServicePort {
         return Mono.zip(
                 securityContextPort.getUserAuthenticateRol(),
                 securityContextPort.getAuthenticatedUserId()
-                ).flatMap(tuple -> {
+        ).flatMap(tuple -> {
                     Long userAuthenticatedId = tuple.getT2();
                     String userAuthenticatedRol = tuple.getT1();
 
-                    if(!PedidoUseCaseConstants.ROLE_EMPLOYEE.equalsIgnoreCase(userAuthenticatedRol)){
-                        return Mono.error(new PedidoException(PedidoExceptionType.NOT_ROL_EMPLEADO));
-                    }
+                    return pedidoUseCaseValidation.validarRolEmpleado(userAuthenticatedRol)
+                            .then(Mono.defer(() -> {
 
-                    pedidoToCreate.setEmpleadoId(userAuthenticatedId);
+                                pedidoToCreate.setEmpleadoId(userAuthenticatedId);
 
-                    return Mono.zip(restaurantServicePort.existsRestaurant(pedidoToCreate.getRestauranteId()),
-                                    userClientServicePort.findDataClient(pedidoToCreate.getClienteId()).switchIfEmpty(
-                                            Mono.error(new PedidoException(PedidoExceptionType.CLIENT_PEDIDO_NOT_EXISTS))
-                                    ))
-                            .flatMap(objects -> {
-                                boolean existsRestaurantToPedido = objects.getT1();
-                                Client foundClienteToPedido = objects.getT2();
-                                if(!existsRestaurantToPedido){
-                                    return Mono.error(new PedidoException(PedidoExceptionType.RESTAURANT_NOT_EXISTS));
-                                }
+                                return Mono.zip(restaurantServicePort.existsRestaurant(pedidoToCreate.getRestauranteId()),
+                                                userClientServicePort.findDataClient(pedidoToCreate.getClienteId()).switchIfEmpty(
+                                                        Mono.error(new PedidoException(PedidoExceptionType.CLIENT_PEDIDO_NOT_EXISTS))
+                                                ))
+                                        .flatMap(objects -> {
+                                            boolean existsRestaurantToPedido = objects.getT1();
+                                            Client foundClienteToPedido = objects.getT2();
 
-                                pedidoToCreate.setClienteId(foundClienteToPedido.getId());
+                                            return pedidoUseCaseValidation.validarExistenciaRestaurante(existsRestaurantToPedido)
+                                                    .then(Mono.defer(() -> {
+                                                        pedidoToCreate.setClienteId(foundClienteToPedido.getId());
 
-                                return Mono.justOrEmpty(pedidoPersistencePort.findByClienteIdAndEstadoIn(foundClienteToPedido.getId(), new EstadoPedido[]{EstadoPedido.PENDIENTE, EstadoPedido.EN_PREPARACION, EstadoPedido.LISTO}))
-                                        .flatMap(foundPedidoUserStatusActive -> Mono.<Pedido>error(new PedidoException(PedidoExceptionType.CLIENT_STATUS_PEDIDO_IN)))
-                                        .switchIfEmpty(Mono.defer(() -> {
+                                                        return pedidoPersistencePort.findByClienteIdAndEstadoIn(foundClienteToPedido.getId(), new EstadoPedido[]{EstadoPedido.PENDIENTE, EstadoPedido.EN_PREPARACION, EstadoPedido.LISTO})
+                                                                .flatMap(foundPedidoUserStatusActive -> Mono.<Pedido>error(new PedidoException(PedidoExceptionType.CLIENT_STATUS_PEDIDO_IN)))
+                                                                .switchIfEmpty(Mono.defer(() ->
+                                                                        restaurantServicePort.findDishsRestaurant(pedidoToCreate.getRestauranteId())
+                                                                                .switchIfEmpty(Mono.error(new PedidoException(PedidoExceptionType.RESTAURANT_NOT_EXISTS)))
+                                                                                .flatMap(listDishRestaurant ->
 
-                                            return restaurantServicePort.findDishsRestaurant(pedidoToCreate.getRestauranteId())
-                                                    .flatMap(listDishRestaurant -> {
+                                                                                    pedidoUseCaseValidation.validarItemsPedido(pedidoToCreate.getItems())
+                                                                                            .then(Mono.defer(() ->
+                                                                                                Flux.fromIterable(pedidoToCreate.getItems())
+                                                                                                        .flatMap(dishToPedido ->
+                                                                                                                pedidoUseCaseValidation.validationItemDishToPedido(listDishRestaurant, dishToPedido)
+                                                                                                        ).collectList()
+                                                                                                        .flatMap(dishAvailableToPedido -> {
 
-                                                        if(pedidoToCreate.getItems() == null || pedidoToCreate.getItems().isEmpty()){
-                                                            return Mono.error(new PedidoException(PedidoExceptionType.PEDIDO_NOT_ITEMS));
-                                                        }
-                                                        return Flux.fromIterable(pedidoToCreate.getItems())
-                                                                .flatMap(dishToPedido -> {
-                                                                    String convertIdDishToString = String.valueOf(dishToPedido.getPlatoId());
+                                                                                                            if(dishAvailableToPedido.isEmpty()){
+                                                                                                                return Mono.error(new PedidoException(PedidoExceptionType.PEDIDO_NOT_ITEMS));
+                                                                                                            }
 
-                                                                    Optional<Object> obtainDishToPedidoOpt = listDishRestaurant.stream()
-                                                                            .filter(dish -> convertIdDishToString.equals(
-                                                                                    String.valueOf(((Map<String, Object>) dish).get("id"))
-                                                                            ))
-                                                                            .findFirst();
+                                                                                                            pedidoToCreate.setEstado(EstadoPedido.PENDIENTE);
+                                                                                                            pedidoToCreate.setFechaCreacion(LocalDateTime.now());
+                                                                                                            pedidoToCreate.setItems(dishAvailableToPedido);
 
-                                                                    if (obtainDishToPedidoOpt.isEmpty()) {
-                                                                        return Mono.error(new PedidoException(PedidoExceptionType.PLATO_NOT_AVAILABLE, "ID: " + dishToPedido.getPlatoId()));
-                                                                    }
+                                                                                                            return pedidoPersistencePort.savePedido(pedidoToCreate);
+                                                                                                        })
+                                                                                            ))
 
-                                                                    Object obtainDishToPedido = obtainDishToPedidoOpt.get();
+                                                                                )
+                                                                ));
 
-                                                                    if (!Boolean.TRUE.equals(((Map<String, Object>)obtainDishToPedido).get(PedidoUseCaseConstants.DISH_ACTIVE_KEY))) {
-                                                                        return Mono.error(new PedidoException(PedidoExceptionType.PLATO_NOT_ACTIVE, "ID: " + convertIdDishToString));
-                                                                    }
-
-                                                                    return Mono.just(dishToPedido);
-                                                                }).collectList()
-                                                                .flatMap(dishAvailableToPedido -> {
-                                                                    pedidoToCreate.setEstado(EstadoPedido.PENDIENTE);
-                                                                    pedidoToCreate.setFechaCreacion(LocalDateTime.now());
-                                                                    pedidoToCreate.setItems(dishAvailableToPedido);
-
-                                                                    return pedidoPersistencePort.savePedido(pedidoToCreate);
-                                                                });
-                                                    });
-                                        }));
+                                                    }));
 
 
-                            });
+
+                                        });
+                            }));
 
                 });
     }
@@ -149,10 +142,12 @@ public class PedidoUseCase implements IPedidoServicePort {
                 securityContextPort.getAuthenticatedUserId()
                 )
                 .flatMap( tuple -> {
+
                     String userAuthenticatedRol = tuple.getT1();
                     Long userAuthenticatedId = tuple.getT2();
+                    EstadoPedido newStatus = EstadoPedido.valueOf(newStatusPedido.toUpperCase());
 
-                    if (!PedidoUseCaseConstants.ROLE_EMPLOYEE.equalsIgnoreCase(userAuthenticatedRol)) {
+                    if (!PedidoUseCaseConstants.ROLE_EMPLOYEE.equalsIgnoreCase(userAuthenticatedRol) && !EstadoPedido.CANCELADO.equals(newStatus)) {
                         return Mono.error(new PedidoException(PedidoExceptionType.ROL_INVALID));
                     }
 
@@ -160,7 +155,7 @@ public class PedidoUseCase implements IPedidoServicePort {
                             .switchIfEmpty(Mono.error(new PedidoException(PedidoExceptionType.FIND_NOT_EXISTS_PEDIDO)))
                             .flatMap(pedidoUpdateToStatus -> {
                                 EstadoPedido statusPedidoPrevious = pedidoUpdateToStatus.getEstado();
-                                pedidoUpdateToStatus.setEstado(EstadoPedido.valueOf(newStatusPedido.toUpperCase()));
+                                pedidoUpdateToStatus.setEstado(newStatus);
                                 Mono<Pedido> resultSendSmsClientPedidoListo = Mono.just(pedidoUpdateToStatus);
 
                                 if(pedidoUpdateToStatus.getEstado().equals(EstadoPedido.ENTREGADO)){
@@ -172,15 +167,10 @@ public class PedidoUseCase implements IPedidoServicePort {
                                 }
 
                                 return resultSendSmsClientPedidoListo
-                                        .flatMap(pedidoPersistencePort::savePedido)
+                                        .flatMap(pedidoPersistencePort::updateStatusPedido)
                                         .flatMap(updatedStatusPedido -> {
-                                            TrazabilidadPedido newTrazabilidadUpdateStatusPedido = new TrazabilidadPedido();
-                                            newTrazabilidadUpdateStatusPedido.setPedidoId(updatedStatusPedido.getId());
-                                            newTrazabilidadUpdateStatusPedido.setClienteId(updatedStatusPedido.getClienteId());
-                                            newTrazabilidadUpdateStatusPedido.setEmpleadoId(userAuthenticatedId);
-                                            newTrazabilidadUpdateStatusPedido.setEstadoNuevo(updatedStatusPedido.getEstado());
-                                            newTrazabilidadUpdateStatusPedido.setEstadoAnterior(statusPedidoPrevious);
-                                            newTrazabilidadUpdateStatusPedido.setFechaCambio(LocalDateTime.now());
+
+                                            TrazabilidadPedido newTrazabilidadUpdateStatusPedido = pedidoUseCaseValidation.createTrazabilidadToUpdateStatusPedido(updatedStatusPedido, userAuthenticatedId, statusPedidoPrevious);
 
                                             return trazabilidadPersistencePort.saveTrazabilidad(newTrazabilidadUpdateStatusPedido)
                                                     .thenReturn(PedidoUseCaseConstants.ORDER_STATUS_UPDATED_SUCCESS + statusPedidoPrevious + " a " + updatedStatusPedido.getEstado())
@@ -201,32 +191,26 @@ public class PedidoUseCase implements IPedidoServicePort {
 
                     return pedidoPersistencePort.findByIdPedido(findPedidoId)
                             .switchIfEmpty(Mono.error(new PedidoException(PedidoExceptionType.FIND_NOT_EXISTS_PEDIDO)))
-                            .flatMap(pedidoUpdateStatusToEntregado -> {
-                                if(!EstadoPedido.LISTO.equals(pedidoUpdateStatusToEntregado.getEstado())){
-                                    return Mono.error(new PedidoException(PedidoExceptionType.STATUS_PEDIDO_NOT_LISTO));
-                                }
+                            .flatMap(pedidoUpdateStatusToEntregado ->
 
-                                if(EstadoPedido.ENTREGADO.equals(pedidoUpdateStatusToEntregado.getEstado())){
-                                    return Mono.error(new PedidoException(PedidoExceptionType.PEDIDO_ENTREGADO_NOT_UPDATE));
-                                }
-
-                                if(!smsPinSecurityRetirePedido.equals(pedidoUpdateStatusToEntregado.getPinSeguridad())){
-                                    return Mono.error(new PedidoException(PedidoExceptionType.PIN_SEGURITY_INCORRECT));
-                                }
-
-
-                                return updateStatusPedido(pedidoUpdateStatusToEntregado.getId(), EstadoPedido.ENTREGADO.toString())
+                               pedidoUseCaseValidation.validationUpdateStatusEntregadoPedido(pedidoUpdateStatusToEntregado, smsPinSecurityRetirePedido)
+                                        .then(updateStatusPedido(pedidoUpdateStatusToEntregado.getId(), EstadoPedido.ENTREGADO.toString()))
                                         .thenReturn(PedidoUseCaseConstants.ORDER_UPDATED_TO_DELIVERED_SUCCESS)
-                                        .onErrorResume(e -> Mono.error(new PedidoException(PedidoExceptionType.ERROR_UPDATE_STATUS_PEDIDO, "ERROR: " + e.getMessage())));
 
-                            });
+                            ).onErrorResume(e -> Mono.error(new PedidoException(PedidoExceptionType.ERROR_UPDATE_STATUS_PEDIDO, "ERROR: " + e.getMessage())));
                 });
     }
 
     @Override
     public Mono<String> canceledPedido(String findPedidoId) {
-        return securityContextPort.getUserAuthenticateRol()
-                .flatMap(userAuthenticatedRol -> {
+        return Mono.zip(
+                securityContextPort.getUserAuthenticateRol(),
+                securityContextPort.getAuthenticatedUserId()
+                )
+                .flatMap(tuple -> {
+
+                    String userAuthenticatedRol = tuple.getT1();
+                    Long userAuthenticatedId = tuple.getT2();
 
                     if(!PedidoUseCaseConstants.ROLE_CLIENT.equalsIgnoreCase(userAuthenticatedRol)){
                         return Mono.error(new PedidoException(PedidoExceptionType.ROL_INVALID));
@@ -237,6 +221,10 @@ public class PedidoUseCase implements IPedidoServicePort {
                             .flatMap(pedidoUpdateStatusToCanceled -> {
                                 if(!EstadoPedido.PENDIENTE.equals(pedidoUpdateStatusToCanceled.getEstado())){
                                     return Mono.error(new PedidoException(PedidoExceptionType.PEDIDO_IN_PREPARACION_NOT_CANCELED));
+                                }
+
+                                if(!userAuthenticatedId.equals(pedidoUpdateStatusToCanceled.getClienteId())){
+                                    return Mono.error(new PedidoException(PedidoExceptionType.PEDIDO_NOT_OWNER_ERROR));
                                 }
 
                                 pedidoUpdateStatusToCanceled.setEstado(EstadoPedido.CANCELADO);
@@ -314,7 +302,7 @@ public class PedidoUseCase implements IPedidoServicePort {
     }
 
     private String generarPin(){
-        return String.format(PedidoUseCaseConstants.PIN_FORMAT, new Random().nextInt(PedidoUseCaseConstants.PIN_MAX_VALUE));
+        return String.format(PedidoUseCaseConstants.PIN_FORMAT, ThreadLocalRandom.current().nextInt(PedidoUseCaseConstants.PIN_MAX_VALUE));
     }
 
 }

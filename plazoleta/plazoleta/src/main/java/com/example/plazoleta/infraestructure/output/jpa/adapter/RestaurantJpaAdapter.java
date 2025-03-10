@@ -3,13 +3,9 @@ package com.example.plazoleta.infraestructure.output.jpa.adapter;
 import com.example.plazoleta.domain.model.Restaurant;
 import com.example.plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.example.plazoleta.infraestructure.output.jpa.entity.RestaurantEntity;
-import com.example.plazoleta.infraestructure.output.jpa.exception.RestaurantEntityException;
-import com.example.plazoleta.infraestructure.output.jpa.exception.RestaurantEntityExceptionType;
 import com.example.plazoleta.infraestructure.output.jpa.mapper.RestaurantEntityMapper;
 import com.example.plazoleta.infraestructure.output.jpa.repository.IRestaurantRepository;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -22,7 +18,6 @@ public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
 
     private final IRestaurantRepository iRestaurantRepository;
     private final RestaurantEntityMapper restaurantEntityMapper;
-    private final Logger logger = LoggerFactory.getLogger(RestaurantJpaAdapter.class);
 
     @Override
     public Restaurant saveRestaurant(Restaurant restaurantToCreate) {
@@ -54,5 +49,10 @@ public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
     public Page<Restaurant> findAllByOrderByNameAsc(Pageable pageable) {
         Page<RestaurantEntity> listRestaurantEntities = iRestaurantRepository.findAllByOrderByNameAsc(pageable);
         return listRestaurantEntities.map(restaurantEntityMapper::toRestaurant);
+    }
+
+    @Override
+    public List<Restaurant> findRestaurantByPropietarioId(Long propietarioId) {
+        return restaurantEntityMapper.toListRestaurant(iRestaurantRepository.findByProprietaryId(propietarioId));
     }
 }

@@ -21,8 +21,8 @@ public class UseCaseConfig {
 
     @Bean
     public IUserServicePort userServicePort(IUserPersistencePort userPersistencePort, IPasswordEncodePort passwordEncoderPort,
-                                             ISecurityContextPort iSecurityContextPort, UserCaseUseValidation userCaseUseValidation) {
-        return new UserUseCase(userPersistencePort, passwordEncoderPort, iSecurityContextPort, userCaseUseValidation);
+                                              UserCaseUseValidation userCaseUseValidation) {
+        return new UserUseCase(userPersistencePort, passwordEncoderPort, userCaseUseValidation);
     }
 
     @Bean

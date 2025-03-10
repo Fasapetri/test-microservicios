@@ -19,14 +19,10 @@ public class TrazabilidadPedidoMongoAdapter implements ITrazabilidadPersistenceP
 
 
     @Override
-    public Flux<TrazabilidadPedido> listHistoryPedido(String findPedidoId) {
-            return findByPedidoId(findPedidoId);
-    }
-
-    @Override
     public Mono<TrazabilidadPedido> saveTrazabilidad(TrazabilidadPedido trazabilidadPedidoToCreate) {
         TrazabilidadPedidoEntity mapperTrazabilidadPedidoEntity = iTrazabilidadPedidoMapper.toTrazabilidadPedidoEntity(trazabilidadPedidoToCreate);
-        return iTrazabilidadPedidoRepository.save(mapperTrazabilidadPedidoEntity).map(iTrazabilidadPedidoMapper::toTrazabilidadPedido);
+        return iTrazabilidadPedidoRepository.save(mapperTrazabilidadPedidoEntity)
+                .map(iTrazabilidadPedidoMapper::toTrazabilidadPedido);
     }
 
     @Override

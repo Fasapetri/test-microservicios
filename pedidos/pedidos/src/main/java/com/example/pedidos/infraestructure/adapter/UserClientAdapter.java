@@ -1,6 +1,5 @@
 package com.example.pedidos.infraestructure.adapter;
 
-import com.example.pedidos.application.dto.ClientResponse;
 import com.example.pedidos.domain.model.Client;
 import com.example.pedidos.domain.spi.IUserClientServicePort;
 import com.example.pedidos.infraestructure.constants.SecurityContextAdapterConstants;
@@ -18,7 +17,8 @@ public class UserClientAdapter implements IUserClientServicePort {
     private final WebClient webClient;
 
     public UserClientAdapter(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("http://localhost:8081")
+        this.webClient = webClientBuilder.baseUrl(SecurityContextAdapterConstants
+                        .WEBCLIENT_BASEURL_USER)
                 .filter(addAuthToken())
                 .build();
     }
@@ -26,10 +26,13 @@ public class UserClientAdapter implements IUserClientServicePort {
     @Override
     public Mono<Client> findDataClient(Long findClientId) {
         return webClient.get()
-                .uri("/api/users/id/{id}", findClientId)
+                .uri(SecurityContextAdapterConstants.WEBCLIENT_URI_FIND_DATA_CLIENT,
+                        findClientId)
                 .retrieve()
                 .bodyToMono(Client.class)
-                .map(clientResponse -> new Client(clientResponse.getId(), clientResponse.getName(), clientResponse.getLastName(), clientResponse.getPhone()));
+                .map(clientResponse -> new Client(clientResponse.getId(),
+                        clientResponse.getName(), clientResponse.getLastName(),
+                        clientResponse.getPhone()));
 
     }
 
@@ -45,7 +48,9 @@ public class UserClientAdapter implements IUserClientServicePort {
                 .flatMap(token -> {
                     ClientRequest.Builder requestBuilder = ClientRequest.from(request);
                     if (token != null) {
-                        requestBuilder.header(SecurityContextAdapterConstants.AUTHORIZATION_HEADER, SecurityContextAdapterConstants.BEARER_PREFIX + token);
+                        requestBuilder.header(SecurityContextAdapterConstants
+                                .AUTHORIZATION_HEADER,
+                                SecurityContextAdapterConstants.BEARER_PREFIX + token);
                     }
                     return next.exchange(requestBuilder.build());
                 });

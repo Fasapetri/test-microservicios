@@ -1,7 +1,8 @@
 package com.example.users.infraestructure.adapter;
 
 import com.example.users.domain.spi.IJwtServicePort;
-import com.example.users.infraestructure.Security.JwtUtil;
+import com.example.users.infraestructure.security.JwtUtil;
+import com.example.users.infraestructure.constants.SecurityContextAdapterConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +38,6 @@ public class JwtServiceAdapter implements IJwtServicePort {
     }
 
     private String cleanToken(String token){
-        return token.replace("Bearer ", "");
+        return token.replace(SecurityContextAdapterConstants.BEARER_PREFIX, "");
     }
 }

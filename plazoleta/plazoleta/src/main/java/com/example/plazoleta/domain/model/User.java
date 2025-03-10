@@ -12,4 +12,10 @@ public class User {
     private String email;
 
     private String rol;
+
+    private String name;
+
+    private String lastName;
+
+    private String phone;
 }

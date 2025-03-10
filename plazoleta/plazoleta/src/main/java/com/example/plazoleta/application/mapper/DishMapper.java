@@ -35,8 +35,6 @@ public interface DishMapper {
 
     DishResponse toDishResponse(Dish dish);
 
-    List<Dish> toListDish(List<DishRequest> dishRequestList);
-
     List<DishResponse> toListDishResponse(List<Dish> dishList);
 
 }

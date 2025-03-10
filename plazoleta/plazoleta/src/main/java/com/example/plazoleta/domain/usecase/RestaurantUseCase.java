@@ -9,46 +9,45 @@ import com.example.plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.example.plazoleta.domain.spi.ISecurityContextPort;
 import com.example.plazoleta.domain.spi.IUserClientPort;
 import com.example.plazoleta.domain.validations.RestaurantUseCaseValidation;
+import com.example.plazoleta.infraestructure.output.jpa.exception.RestaurantEntityException;
+import com.example.plazoleta.infraestructure.output.jpa.exception.RestaurantEntityExceptionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public class RestaurantUseCase implements IRestaurantServicePort {
 
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IUserClientPort userClientPort;
-    private final ISecurityContextPort securityContextPort;
     private final RestaurantUseCaseValidation restaurantUseCaseValidation;
 
-    public RestaurantUseCase(IRestaurantPersistencePort iRestaurantPersistencePort, IUserClientPort iUserClientPort, ISecurityContextPort iSecurityContextPort, RestaurantUseCaseValidation restaurantUseCaseValidation) {
+    public RestaurantUseCase(IRestaurantPersistencePort iRestaurantPersistencePort, IUserClientPort iUserClientPort, RestaurantUseCaseValidation restaurantUseCaseValidation) {
         this.restaurantPersistencePort = iRestaurantPersistencePort;
         this.userClientPort = iUserClientPort;
-        this.securityContextPort = iSecurityContextPort;
         this.restaurantUseCaseValidation = restaurantUseCaseValidation;
     }
 
     @Override
     public Restaurant saveRestaurant(Restaurant restaurantToCreate) {
-        String userAuthenticatedRol = securityContextPort.getUserAuthenticateRol();
 
         User foundRestaurantPropietario = userClientPort.getUserById(restaurantToCreate.getId_proprietary());
+
+        restaurantUseCaseValidation.validationCreateRestaurant(foundRestaurantPropietario, restaurantToCreate);
 
         if(restaurantPersistencePort.existsByNit(restaurantToCreate.getNit())){
             throw new RestaurantException(RestaurantExceptionType.NIT_RESTAURANT_ALREADY_EXISTS);
         }
 
-        restaurantUseCaseValidation.ValidationCreateRestaurant(userAuthenticatedRol, foundRestaurantPropietario, restaurantToCreate);
         return restaurantPersistencePort.saveRestaurant(restaurantToCreate);
     }
 
     @Override
     public List<Restaurant> getAllrestaurant() {
-        List<Restaurant> listAllRestaurant = restaurantPersistencePort.getAllrestaurant();
-        if(listAllRestaurant.isEmpty()){
-            throw new RestaurantException(RestaurantExceptionType.RESTAURANT_NOT_DATA);
-        }
-        return listAllRestaurant;
+        return Optional.ofNullable(restaurantPersistencePort.getAllrestaurant())
+                .orElseThrow(() -> new RestaurantEntityException(RestaurantEntityExceptionType.RESTAURANT_NOT_DATA));
+
     }
 
     @Override
@@ -63,19 +62,15 @@ public class RestaurantUseCase implements IRestaurantServicePort {
 
     @Override
     public Restaurant findById(Long findRestaurantId) {
-        Restaurant foundRestaurant = restaurantPersistencePort.findById(findRestaurantId);
-        if(foundRestaurant == null){
-            throw new RestaurantException(RestaurantExceptionType.RESTAURANT_NOT_FOUND);
-        }
-        return foundRestaurant;
+       return  Optional.ofNullable(restaurantPersistencePort.findById(findRestaurantId))
+                .orElseThrow(() -> new RestaurantException(RestaurantExceptionType.RESTAURANT_NOT_FOUND));
+
     }
 
     @Override
     public Page<Restaurant> findAllByOrderByNameAsc(Pageable pageable) {
-        Page<Restaurant> paginatorFindAllRestaurant = restaurantPersistencePort.findAllByOrderByNameAsc(pageable);
-        if(paginatorFindAllRestaurant.isEmpty()){
-            throw new RestaurantException(RestaurantExceptionType.RESTAURANT_NOT_DATA);
-        }
-        return paginatorFindAllRestaurant;
+        return Optional.ofNullable(restaurantPersistencePort.findAllByOrderByNameAsc(pageable))
+                .orElseThrow(() -> new RestaurantException(RestaurantExceptionType.RESTAURANT_NOT_DATA));
+
     }
 }

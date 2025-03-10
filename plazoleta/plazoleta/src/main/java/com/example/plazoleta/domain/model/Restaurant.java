@@ -1,8 +1,6 @@
 package com.example.plazoleta.domain.model;
 
-import com.example.plazoleta.domain.model.Dish;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 

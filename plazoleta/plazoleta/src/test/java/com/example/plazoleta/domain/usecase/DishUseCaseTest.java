@@ -35,11 +35,11 @@ class DishUseCaseTest {
     private Restaurant testRestaurant;
     private Dish testDish;
     private User testPropietario;
-    private String token;
 
     @BeforeEach
     void setUp() {
-        testPropietario = new User(1L, "propietario@example.com", "PROPIETARIO");
+        testPropietario = new User(1L, "propietario@example.com", "PROPIETARIO",
+                "testpropietario", "test", "+57123456789");
 
         testRestaurant = new Restaurant();
         testRestaurant.setId(1L);
@@ -51,8 +51,10 @@ class DishUseCaseTest {
         testDish.setPrice(100);
         testDish.setRestaurant(testRestaurant);
         testDish.setActive(true);
+        testDish.setCategory("Premium");
+        testDish.setDescription("Es una pizza hawaiana");
+        testDish.setUrl_image("htttp://mi_imagen/pizza");
 
-        token = "Bearer token-example";
     }
 
     @Test
@@ -71,9 +73,6 @@ class DishUseCaseTest {
 
     @Test
     void testSaveDishInvalidRoleException(){
-       User testClient = new User(2L, "client@example.com", "CLIENTE");
-
-
         DishException exception = assertThrows(DishException.class, () ->{
             dishUseCase.saveDish(testDish);
         });
@@ -119,8 +118,6 @@ class DishUseCaseTest {
     @Test
     void testUpdateDishInvalidRolException(){
         Long id_dish = 1L;
-        User testEmpleado = new User(3L, "empleado@example.com", "EMPLEADO");
-
 
         DishException exception = assertThrows(DishException.class, ()->{
             dishUseCase.updateDish(id_dish, testDish);

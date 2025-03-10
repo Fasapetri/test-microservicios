@@ -1,12 +1,12 @@
-package com.example.users.infraestructure.Security;
+package com.example.users.infraestructure.security;
 
+import com.example.users.infraestructure.constants.SecurityContextAdapterConstants;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -15,20 +15,23 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
 
-    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(Base64.getDecoder().decode("N4pL3X9qkU8rMw4JfK2xvZ5pQ1rY6wT9N4pL3X9qkU8rMw4JfK2xvZ5pQ1rY6wT9"));
+    private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(Base64.getDecoder().
+            decode(SecurityContextAdapterConstants.SRC_SECRET_KEY));
 
     public String generateToken(String email, String role, Long userId) {
         return Jwts.builder()
                 .setSubject(email)
-                .claim("role", role)
-                .claim("userId", userId)
+                .claim(SecurityContextAdapterConstants.ROLE_CLAIM, role)
+                .claim(SecurityContextAdapterConstants.USER_ID_CLAIM, userId)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 horas
+                .setExpiration(new Date(System.currentTimeMillis() +
+                        SecurityContextAdapterConstants.EXPIRATION_TOKEN_MS *
+                                SecurityContextAdapterConstants.EXPIRATION_TOKEN_SG *
+                                SecurityContextAdapterConstants.EXPIRATION_TOKEN_MIN)) // 1 horas
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -36,8 +39,8 @@ public class JwtUtil {
     public Claims extractClaims(String token) {
         try {
 
-            if (token.startsWith("Bearer ")) {
-                token = token.substring(7);
+            if (token.startsWith(SecurityContextAdapterConstants.BEARER_PREFIX)) {
+                token = token.substring(SecurityContextAdapterConstants.BEARER_PREFIX_LENGTH);
             }
 
             return Jwts.parserBuilder()
@@ -46,7 +49,8 @@ public class JwtUtil {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (Exception e) {
-            throw new IllegalArgumentException("Token inválido o mal formado" + e.getMessage());
+            throw new IllegalArgumentException(SecurityContextAdapterConstants.INVALID_TOKEN
+                    + e.getMessage());
         }
     }
 
@@ -54,28 +58,31 @@ public class JwtUtil {
         try {
             return extractClaims(token).getSubject();
         } catch (Exception e){
-            throw new IllegalArgumentException("Mess " + extractClaims(token).getSubject());
+            throw new IllegalArgumentException(SecurityContextAdapterConstants.ERROR_EXTRACT_EMAIL
+                    + extractClaims(token).getSubject());
         }
     }
 
     public String extractRole(String token) {
-        return extractClaims(token).get("role", String.class);
+        return extractClaims(token).get(SecurityContextAdapterConstants.ROLE_CLAIM, String.class);
     }
 
     public Long extractUserId(String token) {
         try{
             Claims claims = extractClaims(token);
-            Object userId = claims.get("userId");
+            Object userId = claims.get(SecurityContextAdapterConstants.USER_ID_CLAIM);
 
-            if(userId instanceof Integer){
-                return ((Integer) userId).longValue();
-            } else if(userId instanceof Long){
-                return (Long) userId;
+            if(userId instanceof Integer intUserId){
+                return intUserId.longValue();
+            } else if(userId instanceof Long longUserId){
+                return longUserId;
             } else {
-                throw new IllegalArgumentException("Tipo de userId desconocido: " + userId.getClass().getName());
+                throw new IllegalArgumentException(SecurityContextAdapterConstants.UNKNOWN_USER_ID_TYPE
+                        + userId.getClass().getName());
             }
         }catch(Exception e){
-            throw new IllegalArgumentException("Error al extraer el userid del token: " + e.getMessage());
+            throw new IllegalArgumentException(SecurityContextAdapterConstants.ERROR_EXTRACT_ID
+                    + e.getMessage());
         }
     }
 
@@ -100,8 +107,8 @@ public class JwtUtil {
     public Authentication getAuthentication(String token) {
         Claims claims = extractClaims(token);
         String email = claims.getSubject();
-        String role = claims.get("role", String.class);
-        Long userId = claims.get("userId", Long.class);
+        String role = claims.get(SecurityContextAdapterConstants.ROLE_CLAIM, String.class);
+        Long userId = claims.get(SecurityContextAdapterConstants.USER_ID_CLAIM, Long.class);
 
         List<SimpleGrantedAuthority> authorities = role != null
                 ? Collections.singletonList(new SimpleGrantedAuthority(role))

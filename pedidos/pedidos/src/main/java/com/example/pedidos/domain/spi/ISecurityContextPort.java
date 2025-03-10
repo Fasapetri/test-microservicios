@@ -8,8 +8,5 @@ public interface ISecurityContextPort {
 
     Mono<Long> getAuthenticatedUserId();
 
-    Mono<String> getAuthenticatedUserEmail();
-
-    Mono<String> getToken();
 
 }

@@ -33,7 +33,7 @@ class RestaurantUseCaseTest {
     private Restaurant testRestaurant;
     private User testUserAdmin;
     private User testUserPropietario;
-    private String token;
+
     @BeforeEach
     void setUp() {
         testRestaurant = new Restaurant();
@@ -45,10 +45,11 @@ class RestaurantUseCaseTest {
         testRestaurant.setUrl_logo("http://example.com/logo.png");
         testRestaurant.setId_proprietary(2L);
 
-        testUserAdmin = new User(1L, "admin@example.com", "ADMIN");
-        testUserPropietario = new User(2L, "owner@example.com", "PROPIETARIO");
+        testUserAdmin = new User(1L, "admin@example.com", "ADMIN", "test", "test",
+                "+57123456789");
+        testUserPropietario = new User(2L, "owner@example.com", "PROPIETARIO", "testpropietario",
+                "test", "+57123456789");
 
-        token = "Bearer token123";
     }
 
     @Test
@@ -66,9 +67,6 @@ class RestaurantUseCaseTest {
 
     @Test
     void testSaveRestaurantInvalidRolException(){
-        User testUserClient = new User(3L, "test3@example.com", "CLIENTE");
-
-
         RestaurantException exception = assertThrows(RestaurantException.class, () -> {
             restaurantUseCase.saveRestaurant(testRestaurant);
         });
@@ -79,7 +77,8 @@ class RestaurantUseCaseTest {
 
     @Test
     void testSaveRestaurantInvalidPropietarioException(){
-        User testUserNotPropietario = new User(4L, "test4@example.com", "CLIENTE");
+        User testUserNotPropietario = new User(4L, "test4@example.com", "CLIENTE", "testcliente",
+                "test", "+57123456789");
 
         when(iUserClientPort.getUserById(testRestaurant.getId_proprietary())).thenReturn(testUserNotPropietario);
 

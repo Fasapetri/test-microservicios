@@ -1,5 +1,6 @@
-package com.example.users.infraestructure.Security;
+package com.example.users.infraestructure.security;
 
+import com.example.users.infraestructure.adapter.CustomAccessDeniedHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,21 +17,28 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(JwtFilter jwtFilter){
+
+    public SecurityConfig(JwtFilter jwtFilter, CustomAccessDeniedHandler customAccessDeniedHandler){
         this.jwtFilter = jwtFilter;
+        this.accessDeniedHandler = customAccessDeniedHandler;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers( "/api/auth/login", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers( "/api/auth/login", "/swagger-ui/**",
+                                "/swagger-ui.html", "/api/users/create-user-cliente").permitAll()
+                        .requestMatchers("/api/users/create-user-propietario").hasAuthority("ADMIN")
+                        .requestMatchers("/api/users/create-user-empleado").hasAuthority("PROPIETARIO")
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/auth/**").authenticated()
                         .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                ).exceptionHandling(exception -> exception.accessDeniedHandler(accessDeniedHandler))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -43,7 +51,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 }

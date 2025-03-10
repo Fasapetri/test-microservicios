@@ -17,11 +17,11 @@ public interface RestaurantEntityMapper {
     RestaurantEntityMapper INSTANCE = Mappers.getMapper(RestaurantEntityMapper.class);
 
     @Mapping(target = "dishes", ignore = true)
+    @Mapping(source = "proprietaryId", target = "id_proprietary")
     Restaurant toRestaurant(RestaurantEntity restaurantEntity);
 
     RestaurantEntity toRestaurantEntity(Restaurant restaurant);
 
     List<Restaurant> toListRestaurant(List<RestaurantEntity> restaurantEntityList);
 
-    List<RestaurantEntity> toListRestaurantEntity(List<Restaurant> restaurantList);
 }

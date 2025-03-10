@@ -10,11 +10,7 @@ import java.util.regex.Pattern;
 
 public class RestaurantUseCaseValidation {
 
-    public void ValidationCreateRestaurant(String userAuthenticatedRol, User findRestaurantPropietario, Restaurant restaurantToCreate){
-        if (!RestaurantUseCaseConstants.ROLE_ADMIN.equalsIgnoreCase(userAuthenticatedRol)) {
-            throw new RestaurantException(RestaurantExceptionType.INVALID_ROL_CREATED_RESTAURANT);
-        }
-
+    public void validationCreateRestaurant(User findRestaurantPropietario, Restaurant restaurantToCreate){
         if(findRestaurantPropietario == null || !RestaurantUseCaseConstants.ROLE_PROPIETARIO.equals(findRestaurantPropietario.getRol())){
             throw new RestaurantException(RestaurantExceptionType.INVALID_ROL_PROPIETARIO);
         }

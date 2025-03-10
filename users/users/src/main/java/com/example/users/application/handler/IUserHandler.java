@@ -3,13 +3,13 @@ package com.example.users.application.handler;
 import com.example.users.application.dto.UserRequest;
 import com.example.users.application.dto.UserResponse;
 
-import java.util.List;
-
 public interface IUserHandler {
 
-    UserResponse saveUser(UserRequest userRequest);
+    UserResponse saveUserPropietario(UserRequest userPropietarioToCreate);
 
-    UserResponse findByEmailUser(String email);
+    UserResponse saveUserEmpleado(UserRequest userEmpleadoToCreate);
+
+    UserResponse saveUserCliente(UserRequest userClienteToCreate);
 
     UserResponse findByIdUser(Long id);
 
@@ -17,5 +17,6 @@ public interface IUserHandler {
 
     void deleteUser(Long userId);
 
-    List<UserResponse> getAllUser();
+    boolean existsUserById(Long findUserId);
+
 }

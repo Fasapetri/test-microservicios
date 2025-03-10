@@ -13,10 +13,16 @@ public class TrazabilidadPedidoEntity {
 
     @Id
     private String id;
+
     private String pedidoId;
+
     private Long clienteId;
+
     private Long empleadoId;
+
     private EstadoPedido estadoAnterior;
+
     private EstadoPedido estadoNuevo;
+
     private LocalDateTime fechaCambio;
 }

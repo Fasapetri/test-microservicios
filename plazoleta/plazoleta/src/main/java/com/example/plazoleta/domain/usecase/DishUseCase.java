@@ -11,6 +11,7 @@ import com.example.plazoleta.domain.spi.ISecurityContextPort;
 import com.example.plazoleta.domain.validations.DishUseCaseValidation;
 
 import java.util.List;
+import java.util.Optional;
 
 public class DishUseCase implements IDishServicePort {
 
@@ -28,69 +29,58 @@ public class DishUseCase implements IDishServicePort {
 
     @Override
     public Dish saveDish(Dish dishToCreate) {
-        String userAuthenticatedRol = securityContextPort.getUserAuthenticateRol();
         Long userAuthenticatedId = securityContextPort.getAuthenticatedUserId();
 
         Restaurant foundRestaurant = restaurantPersistencePort.findById(dishToCreate.getRestaurant().getId());
 
-        dishUseCaseValidation.valitationCreatedDish(userAuthenticatedRol, userAuthenticatedId, foundRestaurant);
+        dishUseCaseValidation.valitationCreatedDish(userAuthenticatedId, foundRestaurant);
 
-        dishToCreate.setActive(true);
-        return dishPersistencePort.saveDish(dishToCreate);
+        return dishPersistencePort.saveDish(dishToCreate.toBuilder().active(true).build());
     }
 
     @Override
     public Dish updateDish(Long findDishId, Dish dishToUpdate) {
-        String userAuthenticatedRol = securityContextPort.getUserAuthenticateRol();
         Long userAuthenticatedId = securityContextPort.getAuthenticatedUserId();
 
         Dish oldDish = dishPersistencePort.findById(findDishId);
 
-        dishUseCaseValidation.validationUpdateDish(userAuthenticatedRol, userAuthenticatedId, oldDish);
+        dishUseCaseValidation.validationUpdateDish(userAuthenticatedId, oldDish);
 
-        dishToUpdate.setId(oldDish.getId());
-        dishToUpdate.setRestaurant(oldDish.getRestaurant());
-        dishToUpdate.setActive(oldDish.getActive());
-        return dishPersistencePort.updateDish(dishToUpdate);
+        return dishPersistencePort.updateDish(dishToUpdate.toBuilder()
+                .id(oldDish.getId())
+                .restaurant(oldDish.getRestaurant())
+                .active(oldDish.getActive())
+                .build());
     }
 
     @Override
     public Dish updateDishStatus(Long findDishId) {
-        String userAuthenticatedRol = securityContextPort.getUserAuthenticateRol();
         Long userAuthenticatedId = securityContextPort.getAuthenticatedUserId();
 
         Dish dishToUpdate = dishPersistencePort.findById(findDishId);
 
-        dishUseCaseValidation.validationUpdateStatusDish(userAuthenticatedRol, userAuthenticatedId, dishToUpdate);
+        dishUseCaseValidation.validationUpdateStatusDish(userAuthenticatedId, dishToUpdate);
 
-        dishToUpdate.setActive(!dishToUpdate.getActive());
-        return dishPersistencePort.updateDish(dishToUpdate);
+        return dishPersistencePort.updateDish(dishToUpdate.toBuilder().active(!dishToUpdate.getActive()).build());
     }
 
     @Override
     public List<Dish> getAllDish() {
-        List<Dish> listAllDish= dishPersistencePort.getAllDish();
-        if(listAllDish.isEmpty()){
-            throw new DishException(DishExceptionType.DISH_NOT_DATA);
-        }
-        return listAllDish;
+        return Optional.ofNullable(dishPersistencePort.getAllDish())
+                .orElseThrow(() -> new DishException(DishExceptionType.DISH_NOT_DATA));
     }
 
     @Override
-    public List<Dish> getDishRestaurant(Long findRestaurantId) {
-        Long userAuthenticatedId = securityContextPort.getAuthenticatedUserId();
+    public List<Dish> getDishRestaurantCategory(Long findRestaurantId, String dishCategory) {
         Restaurant foundRestaurant = restaurantPersistencePort.findById(findRestaurantId);
 
-        dishUseCaseValidation.validationFindDishRestaurant(foundRestaurant, userAuthenticatedId);
-        return dishPersistencePort.getDishRestaurant(findRestaurantId);
+        dishUseCaseValidation.validationFindDishRestaurant(foundRestaurant);
+        return dishPersistencePort.getDishRestaurantCategory(findRestaurantId, dishCategory);
     }
 
     @Override
     public Dish findById(Long findDishId) {
-        Dish foundDish = dishPersistencePort.findById(findDishId);
-        if(foundDish == null){
-            throw new DishException(DishExceptionType.NOT_EXISTS_DISH);
-        }
-        return foundDish;
+        return Optional.ofNullable(dishPersistencePort.findById(findDishId))
+                .orElseThrow(() -> new DishException(DishExceptionType.NOT_EXISTS_DISH));
     }
 }

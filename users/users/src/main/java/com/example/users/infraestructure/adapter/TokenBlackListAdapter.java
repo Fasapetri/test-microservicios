@@ -1,6 +1,7 @@
 package com.example.users.infraestructure.adapter;
 
 import com.example.users.domain.spi.ITokenBlackListServicePort;
+import com.example.users.infraestructure.constants.SecurityContextAdapterConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,9 @@ public class TokenBlackListAdapter implements ITokenBlackListServicePort {
 
     @Override
     public void invalidateToken(String token, long expirationTime) {
-        redisTemplate.opsForValue().set(token, "revoked", expirationTime, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(token,
+                SecurityContextAdapterConstants.INVALIDATE_TOKEN_REVOKED,
+                expirationTime, TimeUnit.MILLISECONDS);
     }
 
     @Override

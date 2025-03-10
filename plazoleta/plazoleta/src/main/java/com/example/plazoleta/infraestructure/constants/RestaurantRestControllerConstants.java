@@ -58,8 +58,21 @@ public class RestaurantRestControllerConstants {
     public static final String PAGINATION_AND_SORTING_DESCRIPTION = "Parámetros de paginación y ordenación";
 
 
+    public static final String BASE_PATH = "/api/restaurant";
 
+    public static final String ADD_RESTAURANT = "/addRestaurant";
+    public static final String LIST_RESTAURANTS = "/listRestaurant";
+    public static final String EXISTS_RESTAURANT_BY_ID = "/existsRestaurant/{id}";
+    public static final String EXISTS_RESTAURANT_BY_NIT = "/existsNit/{nit}";
+    public static final String FIND_RESTAURANT_BY_ID = "/findRestaurant/{id}";
+    public static final String LIST_RESTAURANTS_PAGEABLE = "/listPageable";
+    public static final String ASIGNED_EMPLEADO_RESTAURANT = "/asignar-empleado-restaurant";
+    public static final String PATH_VARIABLE_ID = "id";
+    public static final String PATH_VARIABLE_NIT = "nit";
+    public static final String HAS_AUTHORITY_ADMIN = "hasAuthority('ADMIN')";
+    public static final String HAS_AUTHORITY_PROPIETARIO = "hasAuthority('PROPIETARIO')";
 
+    private RestaurantRestControllerConstants(){}
 
 
 }

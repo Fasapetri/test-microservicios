@@ -17,4 +17,6 @@ public interface IUserPersistencePort {
     void deleteUser(Long userId);
 
     List<User> getAllUser();
+
+    boolean existsUserById(Long findUserId);
 }

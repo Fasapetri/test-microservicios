@@ -12,4 +12,7 @@ public interface UserFeignClient {
 
     @GetMapping("/id/{id}")
     UserResponse findById(@PathVariable("id") Long id);
+
+    @GetMapping("/exists/{id}")
+    boolean existsUserById(@PathVariable("id") Long findUserId);
 }

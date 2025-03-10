@@ -44,8 +44,8 @@ public class DishHandler implements IDishHandler{
     }
 
     @Override
-    public List<DishResponse> getDishRestaurant(Long findRestaurantId) {
-        return dishMapper.toListDishResponse(dishServicePort.getDishRestaurant(findRestaurantId));
+    public List<DishResponse> getDishRestaurantCategory(Long findRestaurantId, String dishCategory) {
+        return dishMapper.toListDishResponse(dishServicePort.getDishRestaurantCategory(findRestaurantId, dishCategory));
     }
 
     @Override

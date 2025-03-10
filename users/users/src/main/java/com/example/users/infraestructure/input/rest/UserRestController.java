@@ -6,13 +6,9 @@ import com.example.users.application.handler.UserHandler;
 import com.example.users.infraestructure.constants.UserRestControllerConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,21 +24,28 @@ public class UserRestController {
 
     @Operation(summary = UserRestControllerConstants.CREATE_USER_SUMMARY,
             description = UserRestControllerConstants.CREATE_USER_DESCRIPTION)
-    @PostMapping("/create-user")
-    public ResponseEntity<UserResponse> addUser(@RequestBody UserRequest userRequest){
-        UserResponse user = userHandler.saveUser(userRequest);
-        return ResponseEntity.ok(user);
+    @PostMapping("/create-user-propietario")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<UserResponse> createUserPropietario(@RequestBody UserRequest userPorpietarioToCreate){
+        UserResponse userPropietarioSaved = userHandler.saveUserPropietario(userPorpietarioToCreate);
+        return ResponseEntity.ok(userPropietarioSaved);
     }
 
-    @Operation(summary = UserRestControllerConstants.FIND_BY_EMAIL_SUMMARY,
-            description = UserRestControllerConstants.FIND_BY_EMAIL_DESCRIPTION)
-    @GetMapping("/email/{email}")
-    public ResponseEntity<UserResponse> findByEmail(
-            @Parameter(name = UserRestControllerConstants.PARAM_EMAIL,
-                    example = UserRestControllerConstants.PARAM_EMAIL_EXAMPLE,
-                    required = true)
-            @PathVariable("email") String email) {
-        return ResponseEntity.ok(userHandler.findByEmailUser(email));
+    @Operation(summary = UserRestControllerConstants.CREATE_USER_SUMMARY,
+            description = UserRestControllerConstants.CREATE_USER_DESCRIPTION)
+    @PostMapping("/create-user-empleado")
+    @PreAuthorize("hasAuthority('PROPIETARIO')")
+    public ResponseEntity<UserResponse> createUserEmpleado(@RequestBody UserRequest userEmpleadoToCreate){
+        UserResponse userEmpleadoSaved = userHandler.saveUserEmpleado(userEmpleadoToCreate);
+        return ResponseEntity.ok(userEmpleadoSaved);
+    }
+
+    @Operation(summary = UserRestControllerConstants.CREATE_USER_SUMMARY,
+            description = UserRestControllerConstants.CREATE_USER_DESCRIPTION)
+    @PostMapping("/create-user-cliente")
+    public ResponseEntity<UserResponse> createUserCliente(@RequestBody UserRequest userClienteToCreate){
+        UserResponse userClienteSaved = userHandler.saveUserCliente(userClienteToCreate);
+        return ResponseEntity.ok(userClienteSaved);
     }
 
     @Operation(summary = UserRestControllerConstants.FIND_BY_ID_SUMMARY,
@@ -73,6 +76,11 @@ public class UserRestController {
             @PathVariable("id") Long id) {
         userHandler.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/exists/{id}")
+    public ResponseEntity<Boolean> existsUserById(@PathVariable("id") Long findUserId){
+        return ResponseEntity.ok(userHandler.existsUserById(findUserId));
     }
 }
 

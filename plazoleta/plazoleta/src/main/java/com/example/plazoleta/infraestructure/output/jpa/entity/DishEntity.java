@@ -1,11 +1,9 @@
 package com.example.plazoleta.infraestructure.output.jpa.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.List;
 
 @Data
 @Table(name = "dish")
@@ -37,8 +35,10 @@ public class DishEntity {
     @Column(nullable = false)
     private Boolean active;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_restaurant", nullable = false)
-    @JsonBackReference
     private RestaurantEntity restaurant;
+
+    @OneToMany(mappedBy = "plato", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemPedidoEntity> itemsPedido;
 }

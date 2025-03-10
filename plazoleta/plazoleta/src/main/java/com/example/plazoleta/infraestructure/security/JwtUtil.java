@@ -32,7 +32,8 @@ public class JwtUtil {
         } else if(userId instanceof Long){
             return (Long) userId;
         } else {
-            throw new IllegalArgumentException(SecurityContextAdapterConstants.UNKNOWN_USER_ID_TYPE + userId.getClass().getName());
+            throw new IllegalArgumentException(SecurityContextAdapterConstants.UNKNOWN_USER_ID_TYPE
+                    + userId.getClass().getName());
         }
     }
 

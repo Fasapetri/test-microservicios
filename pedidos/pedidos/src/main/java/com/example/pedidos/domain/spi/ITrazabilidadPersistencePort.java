@@ -6,8 +6,6 @@ import reactor.core.publisher.Mono;
 
 public interface ITrazabilidadPersistencePort {
 
-    Flux<TrazabilidadPedido> listHistoryPedido(String pedidoId);
-
     Mono<TrazabilidadPedido> saveTrazabilidad(TrazabilidadPedido trazabilidadPedido);
 
     Flux<TrazabilidadPedido> findByPedidoId(String pedidoId);

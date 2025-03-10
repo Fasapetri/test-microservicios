@@ -1,4 +1,4 @@
-package com.example.users.infraestructure.Security;
+package com.example.users.infraestructure.security;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -9,7 +9,8 @@ public class CustomUserDetails extends User {
 
     private final Long userId;
 
-    public CustomUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities, Long userId) {
+    public CustomUserDetails(String username, String password,
+                             Collection<? extends GrantedAuthority> authorities, Long userId) {
         super(username, password, authorities);
         this.userId = userId;
     }

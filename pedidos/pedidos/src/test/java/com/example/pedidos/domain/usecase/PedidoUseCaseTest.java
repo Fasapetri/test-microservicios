@@ -1,11 +1,11 @@
 package com.example.pedidos.domain.usecase;
 
 import com.example.pedidos.domain.constants.PedidoUseCaseConstants;
-import com.example.pedidos.domain.model.Client;
-import com.example.pedidos.domain.model.EstadoPedido;
-import com.example.pedidos.domain.model.ItemPedido;
-import com.example.pedidos.domain.model.Pedido;
+import com.example.pedidos.domain.exception.PedidoException;
+import com.example.pedidos.domain.exception.PedidoExceptionType;
+import com.example.pedidos.domain.model.*;
 import com.example.pedidos.domain.spi.*;
+import com.example.pedidos.infraestructure.security.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,10 +13,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextImpl;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -98,5 +105,52 @@ class PedidoUseCaseTest {
         verify(pedidoPersistencePort, times(1)).savePedido(any(Pedido.class));
         verify(restaurantServicePort, times(1)).findDishsRestaurant(1L);
 
+    }
+
+    @Test
+    void testUpdatePedidoStatusSuccess(){
+
+        String pedidoId = "123456";
+        String newStatus = "EN_PREPARACION";
+
+        Pedido updatePedido = new Pedido();
+        updatePedido.setId(pedidoId);
+        updatePedido.setEstado(EstadoPedido.PENDIENTE);
+
+        TrazabilidadPedido trazabilidadPedido = new TrazabilidadPedido();
+
+        CustomUserDetails customUserDetails = new CustomUserDetails("test@email.com", "",
+                Collections.singletonList(new SimpleGrantedAuthority("EMPLEADO")), 100L);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(customUserDetails, "", customUserDetails.getAuthorities());
+        SecurityContext securityContext = new SecurityContextImpl(authentication);
+
+        Mono<SecurityContext> securityContextMono = Mono.just(securityContext);
+
+        doAnswer(invocation -> {
+            System.out.println("Llamado a getUserAuthenticateRol()");
+            return Mono.just("EMPLOYEE");
+        }).when(securityContextPort).getUserAuthenticateRol();
+
+        doAnswer(invocation -> {
+            System.out.println("Llamado a getAuthenticatedUserId()");
+            return Mono.just(100L);
+        }).when(securityContextPort).getAuthenticatedUserId();
+        when(pedidoPersistencePort.findByIdPedido(pedidoId)).thenReturn(Mono.just(updatePedido));
+        when(pedidoPersistencePort.savePedido(any(Pedido.class))).thenAnswer(invocationOnMock -> {
+           Pedido updatedPedido = invocationOnMock.getArgument(0);
+           return Mono.just(updatedPedido);
+        });
+        when(trazabilidadPersistencePort.saveTrazabilidad(any(TrazabilidadPedido.class))).thenReturn(Mono.just(trazabilidadPedido));
+
+        System.out.println("SecurityContextPort: " + securityContextPort);
+
+        StepVerifier.create(
+                        securityContextMono.flatMap(ctx ->
+                                pedidoUseCase.updateStatusPedido(pedidoId, newStatus)
+                                        .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(ctx)))
+                        )
+                )
+                .expectNext("El estado del pedido ha sido actualizado de PENDIENTE a EN_PREPARACION")
+                .verifyComplete();
     }
 }

@@ -36,7 +36,7 @@ public interface DishEntityMapper {
         }
         Restaurant restaurant = new Restaurant();
         restaurant.setId(restaurantEntity.getId());
-        restaurant.setId_proprietary(restaurantEntity.getId_proprietary());
+        restaurant.setId_proprietary(restaurantEntity.getProprietaryId());
         return restaurant;
     }
 }

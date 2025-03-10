@@ -44,13 +44,13 @@ public class DishJpaAdapter implements IDishPersistencePort {
     }
 
     @Override
-    public List<Dish> getDishRestaurant(Long findRestaurantId) {
-        List<DishEntity> listDishEntity = iDishRepository.findAllByRestaurantId(findRestaurantId);
+    public List<Dish> getDishRestaurantCategory(Long findRestaurantId, String dishCategory) {
+        return dishEntityMapper.toListDish(iDishRepository.findAllByRestaurantIdAndCategory(findRestaurantId, dishCategory));
+    }
 
-        if(listDishEntity.isEmpty()){
-            throw new DishEntityException(DishEntityExceptionType.DISH_NOT_DATA);
-        }
-        return dishEntityMapper.toListDish(listDishEntity);
+    @Override
+    public List<Dish> getDishRestaurant(Long idRestaurant) {
+        return dishEntityMapper.toListDish(iDishRepository.findAllByRestaurantId(idRestaurant));
     }
 
     @Override

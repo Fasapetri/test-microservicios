@@ -37,23 +37,4 @@ public class SecurityContextAdapter implements ISecurityContextPort {
                 });
     }
 
-    @Override
-    public Mono<String> getAuthenticatedUserEmail() {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(authentication -> {
-                    if (authentication != null && authentication.getAuthentication().getPrincipal() instanceof CustomUserDetails) {
-                        CustomUserDetails userDetails = (CustomUserDetails) authentication.getAuthentication().getPrincipal();
-                        return userDetails.getUsername();
-                    }
-                    return null;
-                });
-    }
-
-    @Override
-    public Mono<String> getToken() {
-        return ReactiveSecurityContextHolder.getContext()
-                .flatMap(context -> Mono.justOrEmpty(
-                        context.getAuthentication().getCredentials().toString()
-                ));
-    }
 }

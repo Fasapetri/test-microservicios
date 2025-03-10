@@ -16,7 +16,7 @@ public interface IDishHandler {
 
     List<DishResponse> getAllDish();
 
-    List<DishResponse> getDishRestaurant(Long idRestaurant);
+    List<DishResponse> getDishRestaurantCategory(Long idRestaurant, String dishCategory);
 
     DishResponse findById(Long dishId);
 }

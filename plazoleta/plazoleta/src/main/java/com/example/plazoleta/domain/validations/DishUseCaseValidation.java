@@ -9,11 +9,7 @@ import static com.example.plazoleta.domain.constants.DishUseCaseConstants.ROLE_P
 
 public class DishUseCaseValidation {
 
-    public void valitationCreatedDish(String userAuthenticatedRol, Long userAuthenticatedId, Restaurant foundRestaurant){
-
-        if (!ROLE_PROPIETARIO.equalsIgnoreCase(userAuthenticatedRol)) {
-            throw new DishException(DishExceptionType.INVALID_ROL_CREATED_DISH);
-        }
+    public void valitationCreatedDish(Long userAuthenticatedId, Restaurant foundRestaurant){
 
         if(foundRestaurant == null){
             throw new DishException(DishExceptionType.NOT_EXISTS_RESTAURANT);
@@ -25,10 +21,7 @@ public class DishUseCaseValidation {
 
     }
 
-    public void validationUpdateDish(String userAuthenticatedRol, Long userAuthenticatedId, Dish oldDish){
-        if(!ROLE_PROPIETARIO.equalsIgnoreCase(userAuthenticatedRol)){
-            throw new DishException(DishExceptionType.INVALID_ROL_UPDATE_DISH);
-        }
+    public void validationUpdateDish(Long userAuthenticatedId, Dish oldDish){
 
         if(oldDish == null){
             throw new DishException(DishExceptionType.NOT_EXISTS_DISH);
@@ -41,11 +34,7 @@ public class DishUseCaseValidation {
         }
     }
 
-    public void validationUpdateStatusDish(String userAuthenticatedRol, Long userAuthenticatedId, Dish dishToUpdate){
-        if(!ROLE_PROPIETARIO.equalsIgnoreCase(userAuthenticatedRol)){
-            throw new DishException(DishExceptionType.INVALID_ROL_UPDATE_DISH);
-        }
-
+    public void validationUpdateStatusDish(Long userAuthenticatedId, Dish dishToUpdate){
         if(dishToUpdate == null){
             throw new DishException(DishExceptionType.NOT_EXISTS_DISH);
         }
@@ -55,13 +44,10 @@ public class DishUseCaseValidation {
         }
     }
 
-    public void validationFindDishRestaurant(Restaurant findRestaurant, Long userAuthenticatedId){
+    public void validationFindDishRestaurant(Restaurant findRestaurant){
         if(findRestaurant == null){
             throw new DishException(DishExceptionType.NOT_EXISTS_RESTAURANT);
         }
 
-//        if(!userAuthenticatedId.equals(findRestaurant.getId_proprietary())){
-//            throw new DishException(DishExceptionType.RESTAURANT_DOES_NOT_BELONG);
-//        }
     }
 }

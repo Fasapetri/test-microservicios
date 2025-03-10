@@ -43,7 +43,7 @@ public class PedidoRestController {
     }
 
     @PutMapping("/{id}/cancelar")
-    public Mono<String> cancelarPedido(@PathVariable String findPedidoId){
+    public Mono<String> cancelarPedido(@PathVariable("id") String findPedidoId){
         return pedidoHandler.canceledPedido(findPedidoId);
     }
 

@@ -14,7 +14,7 @@ public interface IDishServicePort {
 
     List<Dish> getAllDish();
 
-    List<Dish> getDishRestaurant(Long idRestaurant);
+    List<Dish> getDishRestaurantCategory(Long idRestaurant, String dishCategory);
 
     Dish findById(Long dishId);
 }

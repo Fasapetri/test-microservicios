@@ -1,5 +1,6 @@
 package com.example.plazoleta.application.handler;
 
+import com.example.plazoleta.application.dto.EmpleadoRestaurantRequest;
 import com.example.plazoleta.application.dto.RestaurantRequest;
 import com.example.plazoleta.application.dto.RestaurantResponse;
 import com.example.plazoleta.domain.model.Restaurant;
@@ -21,4 +22,6 @@ public interface IRestaurantHandler {
     RestaurantResponse findById(Long idRestaurant);
 
     Page<RestaurantResponse> findAllByOrderByNameAsc(Pageable pageable);
+
+    String saveEmpleadoRestaurant(EmpleadoRestaurantRequest asignarEmpleadoRestaurant);
 }

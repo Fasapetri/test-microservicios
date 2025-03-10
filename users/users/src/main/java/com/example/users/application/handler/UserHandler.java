@@ -20,39 +20,47 @@ public class UserHandler implements IUserHandler{
     private final UserMapper userMapper;
 
     @Override
-    public UserResponse saveUser(UserRequest userRequest) {
-        User user = userMapper.userRequestToUser(userRequest);
-        User savedUser = userServicePort.saveUser(user);
-        return userMapper.userToUserResponse(savedUser);
+    public UserResponse saveUserPropietario(UserRequest userPropietarioToCreate) {
+        User mapperUserPropietario = userMapper.userRequestToUser(userPropietarioToCreate);
+        User savedUserPropietario = userServicePort.saveUserPropietario(mapperUserPropietario);
+        return userMapper.userToUserResponse(savedUserPropietario);
     }
 
     @Override
-    public UserResponse findByEmailUser(String email) {
-        User user = userServicePort.findByEmailUser(email);
-        return userMapper.userToUserResponse(user);
+    public UserResponse saveUserEmpleado(UserRequest userEmpleadoToCreate) {
+        User mapperUserEmpleado = userMapper.userRequestToUser(userEmpleadoToCreate);
+        User savedUserEmpleado = userServicePort.saveUserEmpleado(mapperUserEmpleado);
+        return userMapper.userToUserResponse(savedUserEmpleado);
     }
 
     @Override
-    public UserResponse findByIdUser(Long id) {
-        User user = userServicePort.findByIdUser(id);
-        return userMapper.userToUserResponse(user);
+    public UserResponse saveUserCliente(UserRequest userClienteToCreate) {
+        User mapperUserCliente = userMapper.userRequestToUser(userClienteToCreate);
+        User savedUserCliente = userServicePort.saveUserCliente(mapperUserCliente);
+        return userMapper.userToUserResponse(savedUserCliente);
     }
 
     @Override
-    public UserResponse updateUser(UserRequest userRequest) {
-        User newUser = userMapper.userRequestToUser(userRequest);
-        userServicePort.updateUser(newUser);
-        return userMapper.userToUserResponse(newUser);
+    public UserResponse findByIdUser(Long findUserId) {
+        User foundUser = userServicePort.findByIdUser(findUserId);
+        return userMapper.userToUserResponse(foundUser);
     }
 
     @Override
-    public void deleteUser(Long userId) {
-        userServicePort.deleteUser(userId);
+    public UserResponse updateUser(UserRequest userToUpdate) {
+        User mapperUser = userMapper.userRequestToUser(userToUpdate);
+        userServicePort.updateUser(mapperUser);
+        return userMapper.userToUserResponse(mapperUser);
     }
 
     @Override
-    public List<UserResponse> getAllUser() {
-        List<User> listUser = userServicePort.getAllUser();
-        return userMapper.listUserToUserResponse(listUser);
+    public void deleteUser(Long findUserId) {
+        userServicePort.deleteUser(findUserId);
     }
+
+    @Override
+    public boolean existsUserById(Long findUserId) {
+        return userServicePort.existsUserById(findUserId);
+    }
+
 }

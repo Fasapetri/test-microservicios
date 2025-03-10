@@ -1,12 +1,7 @@
 package com.example.plazoleta.infraestructure.output.jpa.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -38,10 +33,8 @@ public class RestaurantEntity {
     private String url_logo;
 
     @Column(name = "id_proprietary", nullable = false)
-    private Long id_proprietary;
+    private Long proprietaryId;
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    @JsonIgnore
     private List<DishEntity> dishes;
 }

@@ -35,32 +35,16 @@ public class PedidoMongoAdapter implements IPedidoPersistencePort {
     }
 
     @Override
-    public Flux<Pedido> findByStatusPedido(EstadoPedido findStatusPedido, Long findRestaurantId, int pagina, int cantidadPorPagina) {
-        return pedidoRepository.findByEstadoAndRestauranteId(findStatusPedido, findRestaurantId).map(pedidoEntityMapper::toPedido);
-    }
-
-    @Override
     public Mono<Pedido> updateStatusPedido(Pedido pedidoToupdateStatus) {
         PedidoEntity mapperPedidoEntity = pedidoEntityMapper.toPedidoEntity(pedidoToupdateStatus);
         return pedidoRepository.save(mapperPedidoEntity).map(pedidoEntityMapper::toPedido);
     }
 
     @Override
-    public Mono<Pedido> updateStatusEntregadoPedido(Pedido pedidoToUpdateStatusEntregado) {
-        PedidoEntity mapperPedidoEntity = pedidoEntityMapper.toPedidoEntity(pedidoToUpdateStatusEntregado);
-        return pedidoRepository.save(mapperPedidoEntity).map(pedidoEntityMapper::toPedido);
-    }
-
-    @Override
-    public Mono<Pedido> canceledPedido(Pedido pedidoToUpdate) {
-        PedidoEntity mapperPedidoEntity = pedidoEntityMapper.toPedidoEntity(pedidoToUpdate);
-        return pedidoRepository.save(mapperPedidoEntity).map(pedidoEntityMapper::toPedido);
-    }
-
-
-    @Override
     public Mono<Pedido> findByClienteIdAndEstadoIn(Long clientId, EstadoPedido[] estadoPedido) {
-        return pedidoRepository.findByClienteIdAndEstadoIn(clientId, estadoPedido).map(pedidoEntityMapper::toPedido);
+        return pedidoRepository.findByClienteIdAndEstadoIn(clientId, estadoPedido)
+                .map(pedidoEntityMapper::toPedido)
+                .switchIfEmpty(Mono.empty());
     }
 
 }

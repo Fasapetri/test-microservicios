@@ -9,6 +9,9 @@ public class SecurityContextAdapterConstants {
     public static final String UNKNOWN_USER_ID_TYPE = "Tipo de userId desconocido: ";
     public static final String USER_ID_CLAIM = "userId";
     public static final String ROLE_CLAIM = "role";
+    public static final String CONTENT_TYPE_JSON = "application/json";
+    public static final String FORBIDDEN_OPERATION_MESSAGE = "{\"error\": \" No tienes permisos para realizar esta operación.\"}";
 
+    private SecurityContextAdapterConstants(){}
 
 }

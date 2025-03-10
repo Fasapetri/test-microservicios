@@ -20,4 +20,6 @@ public interface IRestaurantPersistencePort {
     Restaurant findById(Long idRestaurant);
 
     Page<Restaurant> findAllByOrderByNameAsc(Pageable pageable);
+
+    List<Restaurant> findRestaurantByPropietarioId(Long propietarioId);
 }

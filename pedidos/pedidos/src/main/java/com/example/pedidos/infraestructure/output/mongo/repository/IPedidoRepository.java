@@ -11,5 +11,4 @@ import reactor.core.publisher.Mono;
 public interface IPedidoRepository extends ReactiveMongoRepository<PedidoEntity, String> {
 
     Mono<PedidoEntity> findByClienteIdAndEstadoIn(Long findClientId, EstadoPedido[] statusActivePedido);
-    Flux<PedidoEntity> findByEstadoAndRestauranteId(EstadoPedido findStatusPedido, Long findRestaurantId);
 }

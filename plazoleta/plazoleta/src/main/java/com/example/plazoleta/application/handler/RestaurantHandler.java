@@ -1,9 +1,13 @@
 package com.example.plazoleta.application.handler;
 
+import com.example.plazoleta.application.dto.EmpleadoRestaurantRequest;
 import com.example.plazoleta.application.dto.RestaurantRequest;
 import com.example.plazoleta.application.dto.RestaurantResponse;
+import com.example.plazoleta.application.mapper.EmpleadoRestaurantMapper;
 import com.example.plazoleta.application.mapper.RestaurantMapper;
+import com.example.plazoleta.domain.api.IEmpleadoRestaurantServicePort;
 import com.example.plazoleta.domain.api.IRestaurantServicePort;
+import com.example.plazoleta.domain.model.EmpleadoRestaurant;
 import com.example.plazoleta.domain.model.Restaurant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,7 +23,9 @@ import java.util.List;
 public class RestaurantHandler implements IRestaurantHandler{
 
     private final IRestaurantServicePort restaurantServicePort;
+    private final IEmpleadoRestaurantServicePort empleadoRestaurantServicePort;
     private final RestaurantMapper restaurantMapper;
+    private final EmpleadoRestaurantMapper empleadoRestaurantMapper;
 
 
     @Override
@@ -53,5 +59,11 @@ public class RestaurantHandler implements IRestaurantHandler{
     public Page<RestaurantResponse> findAllByOrderByNameAsc(Pageable pageable) {
         return restaurantServicePort.findAllByOrderByNameAsc(pageable)
                 .map(restaurantMapper::toRestaurantResponse);
+    }
+
+    @Override
+    public String saveEmpleadoRestaurant(EmpleadoRestaurantRequest asignarEmpleadoRestaurant) {
+        EmpleadoRestaurant mapperEmpleadoRestaurant = empleadoRestaurantMapper.toEmpleadoRestaurant(asignarEmpleadoRestaurant);
+        return empleadoRestaurantServicePort.asignarEmpleadoARestaurant(mapperEmpleadoRestaurant);
     }
 }

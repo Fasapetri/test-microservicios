@@ -1,5 +1,6 @@
 package com.example.plazoleta.infraestructure.input.rest;
 
+import com.example.plazoleta.application.dto.EmpleadoRestaurantRequest;
 import com.example.plazoleta.application.dto.RestaurantRequest;
 import com.example.plazoleta.application.dto.RestaurantResponse;
 import com.example.plazoleta.application.handler.RestaurantHandler;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/restaurant")
+@RequestMapping(RestaurantRestControllerConstants.BASE_PATH)
 @RequiredArgsConstructor
 @Tag(name = RestaurantRestControllerConstants.RESTAURANT_API_TAG_NAME, description = RestaurantRestControllerConstants.RESTAURANT_API_DESCRIPTION)
 public class RestaurantRestController {
@@ -42,7 +43,8 @@ public class RestaurantRestController {
             @ApiResponse(responseCode = RestaurantRestControllerConstants.RESPONSE_CODE_500, description = RestaurantRestControllerConstants.RESPONSE_CODE_500_DESCRIPTION,
                     content = @Content(mediaType = RestaurantRestControllerConstants.MEDIA_TYPE_JSON))
     })
-    @PostMapping("/addRestaurant")
+    @PostMapping(RestaurantRestControllerConstants.ADD_RESTAURANT)
+    @PreAuthorize(RestaurantRestControllerConstants.HAS_AUTHORITY_ADMIN)
     public ResponseEntity<RestaurantResponse> saveRestaurant(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = RestaurantRestControllerConstants.REQUEST_BODY_DESCRIPTION,
@@ -67,7 +69,7 @@ public class RestaurantRestController {
                     @ApiResponse(responseCode = RestaurantRestControllerConstants.RESPONSE_CODE_500, description = RestaurantRestControllerConstants.RESPONSE_CODE_500_DESCRIPTION)
             }
     )
-    @GetMapping("/listRestaurant")
+    @GetMapping(RestaurantRestControllerConstants.LIST_RESTAURANTS)
     public ResponseEntity<List<RestaurantResponse>> listAllRestaurant(){
         return ResponseEntity.ok(restaurantHandler.getAllrestaurant());
     }
@@ -86,10 +88,10 @@ public class RestaurantRestController {
                     @ApiResponse(responseCode = RestaurantRestControllerConstants.RESPONSE_CODE_500, description = RestaurantRestControllerConstants.RESPONSE_CODE_500_DESCRIPTION)
             }
     )
-    @GetMapping("/existsRestaurant/{id}")
+    @GetMapping(RestaurantRestControllerConstants.EXISTS_RESTAURANT_BY_ID)
     public ResponseEntity<Boolean> existsRestaurantById(
             @Parameter(description = RestaurantRestControllerConstants.PARAMETER_RESTAURANT_ID_DESCRIPTION, required = true)
-            @PathVariable("id") Long findRestaurantId){
+            @PathVariable(RestaurantRestControllerConstants.PATH_VARIABLE_ID) Long findRestaurantId){
         return ResponseEntity.ok(restaurantHandler.existsRestaurant(findRestaurantId));
     }
 
@@ -107,8 +109,8 @@ public class RestaurantRestController {
                     @ApiResponse(responseCode = RestaurantRestControllerConstants.RESPONSE_CODE_500, description = RestaurantRestControllerConstants.RESPONSE_CODE_500_DESCRIPTION)
             }
     )
-    @GetMapping("/existsNit/{nit}")
-    public ResponseEntity<Boolean> existsRestaurantByNit(@PathVariable("nit") String findRestaurantNit){
+    @GetMapping(RestaurantRestControllerConstants.EXISTS_RESTAURANT_BY_NIT)
+    public ResponseEntity<Boolean> existsRestaurantByNit(@PathVariable(RestaurantRestControllerConstants.PATH_VARIABLE_NIT) String findRestaurantNit){
         return ResponseEntity.ok(restaurantHandler.existsByNit(findRestaurantNit));
     }
 
@@ -125,11 +127,11 @@ public class RestaurantRestController {
                     @ApiResponse(responseCode = RestaurantRestControllerConstants.RESPONSE_CODE_500, description = RestaurantRestControllerConstants.RESPONSE_CODE_500_DESCRIPTION)
             }
     )
-    @GetMapping("/findRestaurant/{id}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping(RestaurantRestControllerConstants.FIND_RESTAURANT_BY_ID)
+    @PreAuthorize(RestaurantRestControllerConstants.HAS_AUTHORITY_ADMIN)
     public ResponseEntity<RestaurantResponse> findByRestaurantId(
             @Parameter(description = RestaurantRestControllerConstants.PARAMETER_RESTAURANT_ID_DESCRIPTION, required = true)
-            @PathVariable("id") Long findRestaurantId){
+            @PathVariable(RestaurantRestControllerConstants.PATH_VARIABLE_ID) Long findRestaurantId){
         return ResponseEntity.ok(restaurantHandler.findById(findRestaurantId));
     }
 
@@ -151,10 +153,16 @@ public class RestaurantRestController {
                     @ApiResponse(responseCode = RestaurantRestControllerConstants.RESPONSE_CODE_500, description = RestaurantRestControllerConstants.RESPONSE_CODE_500_DESCRIPTION)
             }
     )
-    @GetMapping("/listPageable")
+    @GetMapping(RestaurantRestControllerConstants.LIST_RESTAURANTS_PAGEABLE)
     public ResponseEntity<Page<RestaurantResponse>> getAllRestaurants(
             @Parameter(description = RestaurantRestControllerConstants.PAGINATION_AND_SORTING_DESCRIPTION)
             Pageable pageable) {
         return ResponseEntity.ok(restaurantHandler.findAllByOrderByNameAsc(pageable));
+    }
+
+    @PostMapping(RestaurantRestControllerConstants.ASIGNED_EMPLEADO_RESTAURANT)
+    @PreAuthorize(RestaurantRestControllerConstants.HAS_AUTHORITY_PROPIETARIO)
+    public ResponseEntity<String> asignarEmpleadoRestaurant(@RequestBody EmpleadoRestaurantRequest empleadoRestaurantRequest){
+        return ResponseEntity.ok(restaurantHandler.saveEmpleadoRestaurant(empleadoRestaurantRequest));
     }
 }

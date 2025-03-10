@@ -12,7 +12,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class RestauranteClientAdapter implements IRestaurantServicePort {
@@ -20,7 +19,7 @@ public class RestauranteClientAdapter implements IRestaurantServicePort {
     private final WebClient webClient;
 
     public RestauranteClientAdapter(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("http://localhost:8082")
+        this.webClient = webClientBuilder.baseUrl(SecurityContextAdapterConstants.WEBCLIENT_BASEURL_RESTAURANT)
                 .filter(addAuthToken())
                 .build();
     }
@@ -29,7 +28,7 @@ public class RestauranteClientAdapter implements IRestaurantServicePort {
     @Override
     public Mono<Boolean> existsRestaurant(Long findRestaurantId) {
         return webClient.get()
-                .uri("/api/restaurant/existsRestaurant/{id}", findRestaurantId)
+                .uri(SecurityContextAdapterConstants.WEBCLIENT_URI_EXISTSRESTAURANT, findRestaurantId)
                 .retrieve()
                 .bodyToMono(Boolean.class);
     }
@@ -37,7 +36,7 @@ public class RestauranteClientAdapter implements IRestaurantServicePort {
     @Override
     public Mono<List<Object>> findDishsRestaurant(Long findRestaurantId) {
         return webClient.get()
-                .uri("/api/dishes/{id}/dishRestaurant", findRestaurantId)
+                .uri(SecurityContextAdapterConstants.WEBCLIENT_URI_FIND_DISH_RESTAURANT, findRestaurantId)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Object>>() {
                 });

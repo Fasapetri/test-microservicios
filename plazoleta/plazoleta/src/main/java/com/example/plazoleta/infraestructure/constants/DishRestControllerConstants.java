@@ -64,4 +64,24 @@ public class DishRestControllerConstants {
     public static final String DISH_ID_UPDATE_DESCRIPTION = "ID del plato a actualizar";
     public static final String DISH_DATA_REGISTRATION_DESCRIPTION = "Datos del plato a registrar";
 
+    public static final String BASE_PATH = "/api/dishes";
+
+    public static final String ADD_DISH = "/add-dish";
+    public static final String UPDATE_DISH = "/{dishId}/update-dish";
+    public static final String UPDATE_DISH_STATUS = "/{dishId}/update-dish-status";
+    public static final String GET_DISH_BY_RESTAURANT = "/{id}/dishRestaurant";
+    public static final String LIST_ALL_DISHES = "/listAllDish";
+    public static final String FIND_DISH_BY_ID = "/{id}/findDish";
+    public static final String HAS_AUTHORITY_PROPIETARIO = "hasAuthority('PROPIETARIO')";
+    public static final String MEDIA_TYPE_JSON = "application/json";
+
+    public static final String DISH_RESTAURANT_CACHE = "dishRestaurantCache";
+    public static final String CACHE_KEY_FIND_DISH_ID = "#findDishId";
+    public static final String CACHE_KEY_FIND_RESTAURANT_ID = "#findRestaurantId";
+
+    public static final String DISH_ID = "dishId";
+    public static final String ID = "id";
+
+    private DishRestControllerConstants(){}
+
 }

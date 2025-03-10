@@ -19,7 +19,10 @@ public enum PedidoExceptionType {
     PIN_SEGURITY_INCORRECT("El pin de seguridad es incorrecto"),
     PEDIDO_IN_PREPARACION_NOT_CANCELED("Lo sentimos, su pedido ya esta EN_PREPARACION y no puede ser cancelado"),
     ERROR_CANCELED_PEDIDO("Error al cancelar el pedido"),
-    PEDIDO_NOT_LISTO_NOTIFICATION("El pedido no esta listo para notificarlo");
+    PEDIDO_NOT_LISTO_NOTIFICATION("El pedido no esta listo para notificarlo"),
+    ERROR_NOT_LOGUEO("Necesitar loguearte para cumplir esta funcion"),
+    PEDIDO_NOT_OWNER_ERROR("No eres dueño del pedido que intentas cancelar");
+
 
     private final String message;
 
